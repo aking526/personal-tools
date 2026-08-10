@@ -35,6 +35,10 @@ final class AppState {
     @ObservationIgnored let calendar: Calendar
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var ticker: Timer?
+    /// The week that was current the last time the day changed under us. It's what lets
+    /// `followDayChange()` tell "still parked on the current week" apart from "deliberately
+    /// paged back to the week that happens to have been current".
+    @ObservationIgnored private var lastCurrentWeekStart: Date
 
     private static let viewModeKey = "weekViewMode"
 
@@ -66,11 +70,18 @@ final class AppState {
                    ? "\n\nThe unreadable file has been kept at \(backup.path)."
                    : "\n\nIt could NOT be moved aside — back it up by hand before making any changes.")
         }
-        self.displayedWeekStart = Week.start(of: now(), calendar: calendar)
+        let currentWeek = Week.start(of: now(), calendar: calendar)
+        self.displayedWeekStart = currentWeek
+        self.lastCurrentWeekStart = currentWeek
         if store.running != nil { startTicking() }
     }
 
     // MARK: - Derived
+
+    /// The wall clock the app runs on. Views that need the date rather than an elapsed count —
+    /// the timeline opens on today — read it here instead of calling `Date()`, so a test that
+    /// injects a clock still describes the whole app.
+    var currentDate: Date { now() }
 
     var selectedProject: Project? {
         store.projects.first { $0.id == store.selectedProjectID }
@@ -202,6 +213,19 @@ final class AppState {
 
     func goToCurrentWeek() {
         displayedWeekStart = Week.start(of: now(), calendar: calendar)
+        lastCurrentWeekStart = displayedWeekStart
+    }
+
+    /// Midnight has passed with the app still open. A window sitting on the current week
+    /// follows the clock into the new one; a window paged back to an older week stays where
+    /// the user left it, because moving that would lose their place mid-review.
+    func followDayChange() {
+        let currentWeek = Week.start(of: now(), calendar: calendar)
+        guard currentWeek != lastCurrentWeekStart else { return }
+        if displayedWeekStart == lastCurrentWeekStart {
+            displayedWeekStart = currentWeek
+        }
+        lastCurrentWeekStart = currentWeek
     }
 
     /// Always seven entries, zero-filled — and all zeroes when no project is selected.

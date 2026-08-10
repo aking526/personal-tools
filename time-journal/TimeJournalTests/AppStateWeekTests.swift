@@ -91,6 +91,54 @@ struct AppStateWeekNavigationTests {
         #expect(state.displayedWeekStart == at(2026, 2, 2))
     }
 
+    @Test func aWindowOnTheCurrentWeekFollowsThatWeekAcrossMidnight() {
+        var clock = at(2026, 2, 8, 23, 59)          // Sunday, last minute of the week
+        let state = makeState(now: { clock })
+        #expect(state.displayedWeekStart == at(2026, 2, 2))
+
+        clock = at(2026, 2, 9, 0, 1)                // Monday, one minute in
+        state.followDayChange()
+        #expect(state.displayedWeekStart == at(2026, 2, 9))
+        #expect(state.isCurrentWeek)
+    }
+
+    @Test func aWindowPagedBackKeepsItsPlaceAcrossMidnight() {
+        var clock = at(2026, 2, 8, 23, 59)
+        let state = makeState(now: { clock })
+        state.goToWeek(offset: -1)                  // reviewing the week just gone
+
+        clock = at(2026, 2, 9, 0, 1)
+        state.followDayChange()
+        #expect(state.displayedWeekStart == at(2026, 1, 26))
+
+        // ...and the week that WAS current isn't mistaken for the week the user chose, so the
+        // next midnight doesn't drag them forward either.
+        clock = at(2026, 2, 16, 0, 1)
+        state.followDayChange()
+        #expect(state.displayedWeekStart == at(2026, 1, 26))
+        #expect(!state.isCurrentWeek)
+    }
+
+    @Test func aDayChangeInsideTheSameWeekLeavesTheWeekAlone() {
+        var clock = at(2026, 2, 4, 23, 59)          // Wednesday
+        let state = makeState(now: { clock })
+        clock = at(2026, 2, 5, 0, 1)                // Thursday, same week
+        state.followDayChange()
+        #expect(state.displayedWeekStart == at(2026, 2, 2))
+        #expect(state.currentDate == at(2026, 2, 5, 0, 1))
+    }
+
+    @Test func returningToTheCurrentWeekByHandRearmsTheFollowing() {
+        var clock = at(2026, 2, 4, 12, 0)
+        let state = makeState(now: { clock })
+        state.goToWeek(offset: -1)
+        state.goToCurrentWeek()
+
+        clock = at(2026, 2, 9, 0, 1)                // next Monday
+        state.followDayChange()
+        #expect(state.displayedWeekStart == at(2026, 2, 9))
+    }
+
     @Test func derivedTotalsFollowTheDisplayedWeek() {
         var clock = at(2026, 2, 3, 9, 0)
         let state = makeState(now: { clock })

@@ -2,7 +2,9 @@
 
 Everything here needs human eyes. Screenshots were unavailable during the build (macOS
 Screen Recording permission isn't granted to the terminal), so no agent has ever *seen*
-this app run — only confirmed it compiles, passes 43 tests, launches, and stays up.
+this app run — only confirmed it compiles, passes 68 tests, launches, and stays up. Some
+of the timeline pane below was checked through the accessibility API instead, which can
+report element geometry but says nothing about how any of it looks.
 
 Run `./run.sh` and walk this list. Anything that fails is a real bug, not a misunderstanding.
 
@@ -61,6 +63,20 @@ These three are the ones most likely to be wrong, and the most consequential if 
 - [ ] Clicking the header link returns to the current week and the data comes back.
 - [ ] Paging back across a month boundary shows a label like `Jan 26 – Feb 1`.
 - [ ] Dragging the split divider resizes both panes without clipping the totals column.
+
+## Timeline view
+
+- [ ] **No scroll bar down the right of the grid**, even with System Settings → Appearance →
+      Show scroll bars set to Always. The wheel and two-finger scroll still work.
+- [ ] Switching to the timeline opens on the current hour, one hour of headroom above it, with
+      today's red now-line on screen — not at midnight, and not on the week's first session.
+- [ ] Today's column header is the accent colour and its date is bold; the other six are grey.
+- [ ] Paging to another week re-aims at that week's first session; an empty week opens at 8am.
+- [ ] Paging back to the current week puts you back on the current hour.
+- [ ] Leave the window open across midnight. The now-line, the bold date, and the accent
+      column all move to the new day, and on a Sunday→Monday crossing the whole week advances.
+- [ ] Do the same while paged back to an older week: that week stays put — and it still stays
+      put at the following midnight, rather than jumping forward a week late.
 
 ## Notes
 

@@ -1,9 +1,15 @@
 import SwiftUI
+import Combine
 
 /// Left pane, timeline mode: the same week the bars describe, drawn against the clock.
 /// Hours down the side, the seven days across, one block per session.
 struct CalendarView: View {
     @Environment(AppState.self) private var app
+
+    /// The day the grid treats as today. Held in state rather than read from the clock as each
+    /// column draws, so the day-change notification below can move the highlight and the
+    /// now-line onto the new day in a window that was left open overnight.
+    @State private var today = Date.now
 
     private let hourHeight: CGFloat = 44
     private let gutterWidth: CGFloat = 46
@@ -43,25 +49,49 @@ struct CalendarView: View {
                             DayColumn(day: day,
                                       blocks: byDay[index] ?? [],
                                       hourHeight: hourHeight,
-                                      showsNowLine: app.calendar.isDateInToday(day))
+                                      showsNowLine: isToday(day))
                         }
                     }
                     .frame(height: dayHeight)
                     .padding(.horizontal, 8)
                 }
-                // The interesting hours are in the middle of a 24-hour column, so start there
-                // rather than at midnight — and follow the content when the week changes.
-                .onAppear { proxy.scrollTo(firstHour(of: blocks), anchor: .top) }
+                // A 24-hour column is always taller than the pane, so the bar only ever said
+                // what the hour gutter beside it already says. `.never` rather than `.hidden`:
+                // `.hidden` still draws the bar for anyone whose System Settings ask for scroll
+                // bars always, which is the case this is meant to answer.
+                .scrollIndicators(.never)
+                // Open on the hours that matter rather than at midnight, and re-aim whenever
+                // what "now" means changes: a new week paged in, or a window left running
+                // through midnight.
+                .onAppear {
+                    today = app.currentDate
+                    proxy.scrollTo(openingHour(), anchor: .top)
+                }
                 .onChange(of: app.displayedWeekStart) {
-                    proxy.scrollTo(firstHour(of: self.blocks), anchor: .top)
+                    proxy.scrollTo(openingHour(), anchor: .top)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+                    today = app.currentDate
+                    app.followDayChange()
+                    proxy.scrollTo(openingHour(), anchor: .top)
                 }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    /// One hour earlier than the first session, so a block never sits flush against the top.
-    private func firstHour(of blocks: [DayLayout.Block]) -> Int {
+    private func isToday(_ day: Date) -> Bool {
+        app.calendar.isDate(day, inSameDayAs: today)
+    }
+
+    /// Which hour goes to the top of the pane. On the current week that's the hour before now,
+    /// so today's now-line opens on screen; on any other week it's the hour before the week's
+    /// first session, and 8am when that week is empty. The hour of headroom either way keeps a
+    /// block — or the now-line — off the top edge.
+    private func openingHour() -> Int {
+        if app.isCurrentWeek {
+            return max(0, app.calendar.component(.hour, from: app.currentDate) - 1)
+        }
         guard let earliest = blocks.map(\.start).min() else { return 8 }
         return max(0, Int(earliest * 24) - 1)
     }
@@ -70,7 +100,7 @@ struct CalendarView: View {
         HStack(spacing: 0) {
             Color.clear.frame(width: gutterWidth, height: 1)
             ForEach(days, id: \.self) { day in
-                let isToday = app.calendar.isDateInToday(day)
+                let isToday = isToday(day)
                 VStack(spacing: 1) {
                     Text(Format.weekday(day, calendar: app.calendar))
                         .font(.caption)
@@ -260,7 +290,7 @@ private struct BlockView: View {
                 .contentShape(Rectangle())
         }
             .buttonStyle(.plain)
-            .help("\(title) · \(range) · \(Format.short(session.duration))")
+            .help("\(title) · \(range) · \(Format.total(session.duration))")
             .accessibilityLabel("\(title), \(range)")
             .contextMenu {
                 Button("Edit Times…") { isEditing = true }

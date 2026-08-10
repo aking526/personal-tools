@@ -90,10 +90,27 @@ These three are the ones most likely to be wrong, and the most consequential if 
 
 ## Session editor
 
-- [ ] Double-clicking a row opens a popover with start/end pickers and the derived duration.
+- [ ] Double-clicking a row — or clicking a block in the calendar — opens a popover headed by
+      the session's note in an editable field, with the project name beneath it.
+- [ ] **The note is not focused and not highlighted when the popover opens.** AppKit hands the
+      first text field in a popover its whole contents selected; the editor refuses that one
+      focus so a stray keystroke can't wipe a note you only opened to read.
+- [ ] Clicking into the note puts the cursor where you clicked rather than selecting the lot.
+- [ ] **Editing the note there and pressing Save changes the text**, in the notes list and on
+      the calendar block. This is the reason the field exists; it used to be times-only.
+- [ ] Adding a note while logging time manually carries it into the new row.
+- [ ] Dismissing with Escape rather than Save discards the note edit along with the time edits.
+- [ ] **Neither date reads with a gap in it** — "Sun, Aug 9, 2026", never "8/ 9/2026". The
+      numeric field macOS draws is what put the space there, so the day is now a button.
+- [ ] Clicking a day button drops a month grid below that row; picking a date closes it again
+      and leaves the time beside it untouched.
+- [ ] Opening the second day button closes the first — never two grids at once.
+- [ ] The time field beside it still takes the keyboard and the stepper arrows.
 - [ ] Changing the end time updates Duration immediately, before saving.
-- [ ] End before start turns the duration red, shows a warning, and disables Save.
+- [ ] End before start turns the duration red, shows a warning, and disables Save/Add.
 - [ ] Fixing it and pressing Save closes the popover; the row and the week bars both update.
+- [ ] An overnight session can still be repaired: start and end carry independent days, so
+      pulling the end back to the previous evening is one date pick, not a fight.
 - [ ] Right-click offers **Edit Times…** and **Delete Session**; deleting shrinks the week total.
 - [ ] Deleting from inside the editor also closes the popover.
 - [ ] Quit and relaunch: edits persisted.

@@ -223,6 +223,22 @@ struct AppStateManualEntryTests {
         #expect(try state.storage.load().sessions.count == 1)
     }
 
+    /// The editor can describe the work as well as time it, so whatever was typed there has
+    /// to survive the trip to disk rather than be dropped on the way.
+    @Test func addSessionKeepsTheNoteItWasGiven() throws {
+        let state = makeState()
+        let project = state.addProject(name: "Thesis")
+
+        let start = Date(timeIntervalSince1970: 1_000_000)
+        state.addSession(projectID: project.id,
+                         start: start,
+                         end: start.addingTimeInterval(3600),
+                         note: "Rewrote chapter 3")
+
+        #expect(state.store.sessions.first?.note == "Rewrote chapter 3")
+        #expect(try state.storage.load().sessions.first?.note == "Rewrote chapter 3")
+    }
+
     /// Defaults must land inside the week on screen, or adding while browsing the past
     /// files the entry under today and it disappears.
     @Test func defaultSpanLandsInTheDisplayedWeek() {

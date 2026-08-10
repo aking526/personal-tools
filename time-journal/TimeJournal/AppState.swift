@@ -99,6 +99,12 @@ final class AppState {
         save()
     }
 
+    /// For views that hold a session's `projectID` rather than the selection — the session
+    /// editor names the project it is about to write to.
+    func project(_ id: UUID) -> Project? {
+        store.projects.first { $0.id == id }
+    }
+
     func sessionCount(for id: UUID) -> Int {
         store.sessions.count { $0.projectID == id }
     }
@@ -159,8 +165,8 @@ final class AppState {
     /// Logs time after the fact. The displayed week follows the new session, so an entry
     /// dated outside the week on screen doesn't vanish the moment it's saved.
     @discardableResult
-    func addSession(projectID: UUID, start: Date, end: Date) -> Session {
-        let session = Session(projectID: projectID, start: start, end: end)
+    func addSession(projectID: UUID, start: Date, end: Date, note: String = "") -> Session {
+        let session = Session(projectID: projectID, start: start, end: end, note: note)
         store.sessions.append(session)
         store.selectedProjectID = projectID
         displayedWeekStart = Week.start(of: start, calendar: calendar)

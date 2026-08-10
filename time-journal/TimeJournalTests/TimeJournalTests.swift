@@ -54,6 +54,15 @@ struct FormatDateTests {
         #expect(Format.weekday(at(9, 0, cal), calendar: cal) == "Mon")   // 2 Feb 2026
     }
 
+    /// The point of this one is the *absence* of the numeric form: the whole reason the session
+    /// editor draws its own day button is that "8/ 9/2026" is what the numeric field looks like.
+    @Test func dayIsSpelledOutRatherThanNumeric() {
+        let cal = calendar("en_US")
+        let text = Format.day(at(9, 30, cal), calendar: cal)   // Mon 2 Feb 2026
+        #expect(text == "Mon, Feb 2, 2026")
+        #expect(!text.contains("/"))
+    }
+
     @Test func timeIsShortenedAndLocalised() {
         #expect(plainSpaces(Format.time(at(9, 30, calendar("en_US")), calendar: calendar("en_US"))) == "9:30 AM")
         #expect(Format.time(at(9, 30, calendar("en_GB")), calendar: calendar("en_GB")) == "9:30")

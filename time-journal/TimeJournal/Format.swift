@@ -33,6 +33,13 @@ nonisolated enum Format {
         date.formatted(style(calendar).weekday(.abbreviated))
     }
 
+    /// "Sun, Aug 9, 2026" — the day a session sits on, in the session editor.
+    /// Spelled out rather than "8/9/2026" because the numeric form is what macOS's own date
+    /// field renders with a two-digit slot per component, gaps and all.
+    static func day(_ date: Date, calendar: Calendar) -> String {
+        date.formatted(style(calendar).weekday(.abbreviated).month(.abbreviated).day().year())
+    }
+
     /// "9:30 AM", or "09:30" where the locale doesn't use a meridiem.
     static func time(_ date: Date, calendar: Calendar) -> String {
         date.formatted(Date.FormatStyle(date: .omitted,

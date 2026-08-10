@@ -51,7 +51,7 @@ The Xcode project is created and confirmed working:
   directory adds it to the build. No `project.pbxproj` edits are ever required.
 - `MACOSX_DEPLOYMENT_TARGET = 26.5`. Single-machine app, so no availability guards needed.
 - `ENABLE_APP_SANDBOX = YES` (Xcode 26 default, left on).
-- Bundle identifier: `com.alistair.TimeLogger`.
+- Bundle identifier: `com.alistair.TimeJournal`.
 
 ## Layout
 
@@ -118,7 +118,7 @@ struct Store: Codable {
 
 A single JSON file, loaded once at launch and written on every mutation.
 
-**Path:** `~/Library/Containers/com.alistair.TimeLogger/Data/Library/Application Support/TimeLogger/store.json`
+**Path:** `~/Library/Containers/com.alistair.TimeJournal/Data/Library/Application Support/TimeJournal/store.json`
 
 Resolved via `FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask)`.
 The container prefix is a consequence of the app sandbox; it is where the file to back up

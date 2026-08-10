@@ -6,15 +6,15 @@ nonisolated struct Storage {
     let url: URL
 
     /// Under the app sandbox this resolves inside
-    /// ~/Library/Containers/com.alistair.TimeLogger/Data/...
+    /// ~/Library/Containers/com.alistair.TimeJournal/Data/...
     ///
-    /// The app was renamed to Time Journal, but both the bundle identifier and this
-    /// directory name deliberately still say TimeLogger: the container is keyed by
-    /// bundle identifier, so changing either one would point a sandboxed app at a
-    /// fresh empty directory it cannot read the old history from.
+    /// History written before the TimeLogger -> TimeJournal rename lives in the old
+    /// com.alistair.TimeLogger container, which the sandbox puts out of reach. That
+    /// data was copied across by hand at rename time; the app has no migration path
+    /// of its own and does not look for it.
     static func appSupport() -> Storage {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return Storage(url: base.appendingPathComponent("TimeLogger/store.json"))
+        return Storage(url: base.appendingPathComponent("TimeJournal/store.json"))
     }
 
     private static var encoder: JSONEncoder {

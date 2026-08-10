@@ -121,7 +121,7 @@ These three are the ones most likely to be wrong, and the most consequential if 
 ## Your data file
 
 ```
-cat ~/Library/Containers/com.alistair.TimeLogger/Data/Library/Application\ Support/TimeLogger/store.json
+cat ~/Library/Containers/com.alistair.TimeJournal/Data/Library/Application\ Support/TimeJournal/store.json
 ```
 
 Expect readable pretty-printed JSON with ISO-8601 dates. This is the file to back up — it is

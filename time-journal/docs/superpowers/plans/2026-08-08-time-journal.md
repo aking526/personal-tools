@@ -21,7 +21,7 @@
 - Deployment target is macOS 26.5 — no `@available` guards needed.
 - The project builds in **Swift 5 language mode with `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`**. Concurrency violations surface as *warnings* here, not errors — treat them as errors anyway (Task 14 enforces a warning-clean build).
 - **The domain layer is `nonisolated`; only `AppState` and the views are main-actor.** Default actor isolation would otherwise make the pure types main-actor-isolated, which breaks two things: a main-actor-isolated `Storage.appSupport()` cannot be used as a default argument (evaluated in a nonisolated context), and main-actor-isolated `Equatable` conformances on the model structs cannot be used inside Swift Testing's `#expect` macro expansions. So `Project`, `Session`, `Running`, `Store`, `Storage`, `Format`, `Week`, `DayTotal`, and `Stats` are each declared `nonisolated`. Keep it that way — and check warnings under `xcodebuild test`, not just `xcodebuild build`: the `#expect` warnings only appear in the test build.
-- Bundle identifier is `com.alistair.TimeLogger`; the app is sandboxed.
+- Bundle identifier is `com.alistair.TimeJournal`; the app is sandboxed.
 - Build: `xcodebuild -scheme TimeJournal -configuration Debug -derivedDataPath build build`
 - Test: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests`
 
@@ -582,10 +582,10 @@ struct Storage {
     let url: URL
 
     /// Under the app sandbox this resolves inside
-    /// ~/Library/Containers/com.alistair.TimeLogger/Data/...
+    /// ~/Library/Containers/com.alistair.TimeJournal/Data/...
     static func appSupport() -> Storage {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        return Storage(url: base.appendingPathComponent("TimeLogger/store.json"))
+        return Storage(url: base.appendingPathComponent("TimeJournal/store.json"))
     }
 
     private static var encoder: JSONEncoder {
@@ -2205,7 +2205,7 @@ Check each of these:
 
 - [ ] **Step 4: Verify the data file**
 
-Run: `cat ~/Library/Containers/com.alistair.TimeLogger/Data/Library/Application\ Support/TimeLogger/store.json`
+Run: `cat ~/Library/Containers/com.alistair.TimeJournal/Data/Library/Application\ Support/TimeJournal/store.json`
 Expected: readable pretty-printed JSON with ISO-8601 dates, containing the projects and sessions created during testing.
 
 - [ ] **Step 5: Commit any fixes**

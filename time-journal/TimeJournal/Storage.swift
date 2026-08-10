@@ -8,10 +8,10 @@ nonisolated struct Storage {
     /// Under the app sandbox this resolves inside
     /// ~/Library/Containers/com.alistair.TimeJournal/Data/...
     ///
-    /// History written before the TimeLogger -> TimeJournal rename lives in the old
-    /// com.alistair.TimeLogger container, which the sandbox puts out of reach. That
-    /// data was copied across by hand at rename time; the app has no migration path
-    /// of its own and does not look for it.
+    /// History written before the TimeLogger -> TimeJournal rename lived in a separate
+    /// com.alistair.TimeLogger container that the sandbox kept out of reach. It was
+    /// copied across by hand and that container has since been deleted, so there is
+    /// nothing left to migrate and the app carries no migration code.
     static func appSupport() -> Storage {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return Storage(url: base.appendingPathComponent("TimeJournal/store.json"))

@@ -1,11 +1,11 @@
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 @MainActor
 private func makeState(now: @escaping () -> Date = { Date(timeIntervalSince1970: 1_000_000) }) -> AppState {
     let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+        .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
     return AppState(storage: Storage(url: dir.appendingPathComponent("store.json")),
                     now: now,
                     calendar: .current)

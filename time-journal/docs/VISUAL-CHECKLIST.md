@@ -107,7 +107,7 @@ These three are the ones most likely to be wrong, and the most consequential if 
 - [ ] While running, the popover shows project name, elapsed time, and a red Stop.
 - [ ] Stopping from the menu bar adds the session to the main window's notes list.
 - [ ] Starting from the menu bar while another project's timer runs stops and records the first.
-- [ ] **Quit TimeLogger** quits the app.
+- [ ] **Quit Time Journal** quits the app.
 - [ ] Menu bar width jitter as the clock rolls over is acceptable to you.
 
 ## Appearance

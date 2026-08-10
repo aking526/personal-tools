@@ -8,12 +8,12 @@
 
 **Tech Stack:** Swift 6.3, SwiftUI, Observation (`@Observable`), Foundation `Calendar`/`JSONEncoder`, Swift Testing. Zero third-party dependencies.
 
-**Spec:** `docs/superpowers/specs/2026-08-08-minimal-timelogger-design.md`
+**Spec:** `docs/superpowers/specs/2026-08-08-time-journal-design.md`
 
 ## Global Constraints
 
 - **Zero third-party dependencies.** No SPM packages, no CocoaPods, no Homebrew. Foundation and SwiftUI only.
-- **Never edit `TimeLogger.xcodeproj/project.pbxproj`.** Source folders are file-system synchronized groups — creating a `.swift` file in `TimeLogger/` or `TimeLoggerTests/` adds it to the build automatically.
+- **Never edit `TimeJournal.xcodeproj/project.pbxproj`.** Source folders are file-system synchronized groups — creating a `.swift` file in `TimeJournal/` or `TimeJournalTests/` adds it to the build automatically.
 - **All date arithmetic goes through `Calendar`.** Never `86400`, never `addingTimeInterval` for day or week offsets. A day is not always 24 hours.
 - **Weeks run Monday→Sunday**, hardcoded via `calendar.firstWeekday = 2`. Do not use the locale default, which is Sunday-first here.
 - **Every function touching dates takes an explicit `calendar: Calendar` parameter** so tests can pin the time zone. Never read `Calendar.current` inside domain code.
@@ -22,8 +22,8 @@
 - The project builds in **Swift 5 language mode with `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`**. Concurrency violations surface as *warnings* here, not errors — treat them as errors anyway (Task 14 enforces a warning-clean build).
 - **The domain layer is `nonisolated`; only `AppState` and the views are main-actor.** Default actor isolation would otherwise make the pure types main-actor-isolated, which breaks two things: a main-actor-isolated `Storage.appSupport()` cannot be used as a default argument (evaluated in a nonisolated context), and main-actor-isolated `Equatable` conformances on the model structs cannot be used inside Swift Testing's `#expect` macro expansions. So `Project`, `Session`, `Running`, `Store`, `Storage`, `Format`, `Week`, `DayTotal`, and `Stats` are each declared `nonisolated`. Keep it that way — and check warnings under `xcodebuild test`, not just `xcodebuild build`: the `#expect` warnings only appear in the test build.
 - Bundle identifier is `com.alistair.TimeLogger`; the app is sandboxed.
-- Build: `xcodebuild -scheme TimeLogger -configuration Debug -derivedDataPath build build`
-- Test: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests`
+- Build: `xcodebuild -scheme TimeJournal -configuration Debug -derivedDataPath build build`
+- Test: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests`
 
 **Four deliberate refinements to the spec, already decided — implement as written here:**
 1. The spec lists one `Format.swift` for "duration formatting and week math". This plan splits it into `Format.swift` (duration strings) and `Week.swift` (week math + bucketing), because they are separate responsibilities.
@@ -39,7 +39,7 @@
 
 **Files:**
 - Create: `run.sh`
-- Create: `TimeLogger/Model.swift`
+- Create: `TimeJournal/Model.swift`
 
 **Interfaces:**
 - Consumes: nothing.
@@ -50,8 +50,8 @@
 ```bash
 #!/bin/bash
 set -e
-xcodebuild -scheme TimeLogger -configuration Debug -derivedDataPath build build
-open build/Build/Products/Debug/TimeLogger.app
+xcodebuild -scheme TimeJournal -configuration Debug -derivedDataPath build build
+open build/Build/Products/Debug/TimeJournal.app
 ```
 
 - [ ] **Step 2: Make it executable and confirm it launches the template app**
@@ -61,7 +61,7 @@ Expected: `** BUILD SUCCEEDED **`, then a window appears showing the "Hello, wor
 
 - [ ] **Step 3: Create the domain types**
 
-Create `TimeLogger/Model.swift`:
+Create `TimeJournal/Model.swift`:
 
 ```swift
 import Foundation
@@ -111,13 +111,13 @@ struct Store: Codable {
 
 - [ ] **Step 4: Verify it compiles**
 
-Run: `xcodebuild -scheme TimeLogger -configuration Debug -derivedDataPath build build`
+Run: `xcodebuild -scheme TimeJournal -configuration Debug -derivedDataPath build build`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add run.sh TimeLogger/Model.swift
+git add run.sh TimeJournal/Model.swift
 git commit -m "Add build script and domain types"
 ```
 
@@ -126,8 +126,8 @@ git commit -m "Add build script and domain types"
 ### Task 2: Duration formatting
 
 **Files:**
-- Create: `TimeLogger/Format.swift`
-- Modify: `TimeLoggerTests/TimeLoggerTests.swift`
+- Create: `TimeJournal/Format.swift`
+- Modify: `TimeJournalTests/TimeJournalTests.swift`
 
 **Interfaces:**
 - Consumes: nothing.
@@ -135,12 +135,12 @@ git commit -m "Add build script and domain types"
 
 - [ ] **Step 1: Write the failing tests**
 
-Replace the entire contents of `TimeLoggerTests/TimeLoggerTests.swift` with:
+Replace the entire contents of `TimeJournalTests/TimeJournalTests.swift` with:
 
 ```swift
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 struct FormatTests {
     @Test func clockPadsToTwoDigits() {
@@ -173,12 +173,12 @@ struct FormatTests {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: compile failure — `cannot find 'Format' in scope`.
 
 - [ ] **Step 3: Implement**
 
-Create `TimeLogger/Format.swift`:
+Create `TimeJournal/Format.swift`:
 
 ```swift
 import Foundation
@@ -209,13 +209,13 @@ enum Format {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: `** TEST SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add TimeLogger/Format.swift TimeLoggerTests/TimeLoggerTests.swift
+git add TimeJournal/Format.swift TimeJournalTests/TimeJournalTests.swift
 git commit -m "Add duration formatting"
 ```
 
@@ -226,8 +226,8 @@ git commit -m "Add duration formatting"
 This is where the only genuinely tricky bugs in the app live. Take the DST test seriously — if it fails, the day arithmetic is wrong, not the test.
 
 **Files:**
-- Create: `TimeLogger/Week.swift`
-- Create: `TimeLoggerTests/WeekTests.swift`
+- Create: `TimeJournal/Week.swift`
+- Create: `TimeJournalTests/WeekTests.swift`
 
 **Interfaces:**
 - Consumes: `Session` (Task 1).
@@ -242,12 +242,12 @@ This is where the only genuinely tricky bugs in the app live. Take the DST test 
 
 - [ ] **Step 1: Write the failing tests**
 
-Create `TimeLoggerTests/WeekTests.swift`:
+Create `TimeJournalTests/WeekTests.swift`:
 
 ```swift
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 /// Pinned to a fixed zone so results never depend on the machine running the tests.
 private func testCalendar() -> Calendar {
@@ -376,12 +376,12 @@ struct StatsTests {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: compile failure — `cannot find 'Week' in scope`.
 
 - [ ] **Step 3: Implement**
 
-Create `TimeLogger/Week.swift`:
+Create `TimeJournal/Week.swift`:
 
 ```swift
 import Foundation
@@ -467,7 +467,7 @@ enum Stats {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: `** TEST SUCCEEDED **`
 
 If `dayMathSurvivesDaylightSaving` fails, do not weaken the assertion — the implementation is using fixed-second arithmetic somewhere.
@@ -475,7 +475,7 @@ If `dayMathSurvivesDaylightSaving` fails, do not weaken the assertion — the im
 - [ ] **Step 5: Commit**
 
 ```bash
-git add TimeLogger/Week.swift TimeLoggerTests/WeekTests.swift
+git add TimeJournal/Week.swift TimeJournalTests/WeekTests.swift
 git commit -m "Add Monday-based week math and day bucketing"
 ```
 
@@ -484,8 +484,8 @@ git commit -m "Add Monday-based week math and day bucketing"
 ### Task 4: JSON storage
 
 **Files:**
-- Create: `TimeLogger/Storage.swift`
-- Create: `TimeLoggerTests/StorageTests.swift`
+- Create: `TimeJournal/Storage.swift`
+- Create: `TimeJournalTests/StorageTests.swift`
 
 **Interfaces:**
 - Consumes: `Store` (Task 1).
@@ -493,16 +493,16 @@ git commit -m "Add Monday-based week math and day bucketing"
 
 - [ ] **Step 1: Write the failing tests**
 
-Create `TimeLoggerTests/StorageTests.swift`:
+Create `TimeJournalTests/StorageTests.swift`:
 
 ```swift
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 private func tempStorage() -> Storage {
     let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+        .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
     return Storage(url: dir.appendingPathComponent("store.json"))
 }
 
@@ -566,12 +566,12 @@ struct StorageTests {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: compile failure — `cannot find 'Storage' in scope`.
 
 - [ ] **Step 3: Implement**
 
-Create `TimeLogger/Storage.swift`:
+Create `TimeJournal/Storage.swift`:
 
 ```swift
 import Foundation
@@ -618,13 +618,13 @@ struct Storage {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: `** TEST SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add TimeLogger/Storage.swift TimeLoggerTests/StorageTests.swift
+git add TimeJournal/Storage.swift TimeJournalTests/StorageTests.swift
 git commit -m "Add atomic JSON storage"
 ```
 
@@ -633,8 +633,8 @@ git commit -m "Add atomic JSON storage"
 ### Task 5: AppState — loading and the stopwatch
 
 **Files:**
-- Create: `TimeLogger/AppState.swift`
-- Create: `TimeLoggerTests/AppStateTests.swift`
+- Create: `TimeJournal/AppState.swift`
+- Create: `TimeJournalTests/AppStateTests.swift`
 
 **Interfaces:**
 - Consumes: `Store`, `Storage`, `Session`, `Running`, `Week`.
@@ -646,17 +646,17 @@ git commit -m "Add atomic JSON storage"
 
 - [ ] **Step 1: Write the failing tests**
 
-Create `TimeLoggerTests/AppStateTests.swift`:
+Create `TimeJournalTests/AppStateTests.swift`:
 
 ```swift
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 @MainActor
 private func makeState(now: @escaping () -> Date = { Date(timeIntervalSince1970: 1_000_000) }) -> AppState {
     let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+        .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
     var cal = Calendar(identifier: .gregorian)
     cal.timeZone = TimeZone(identifier: "America/New_York")!
     return AppState(storage: Storage(url: dir.appendingPathComponent("store.json")),
@@ -752,7 +752,7 @@ struct AppStateTimerTests {
 
     @Test func corruptStoreSurfacesAnError() throws {
         let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+            .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
         let storage = Storage(url: dir.appendingPathComponent("store.json"))
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         try Data("not json".utf8).write(to: storage.url)
@@ -765,12 +765,12 @@ struct AppStateTimerTests {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: compile failure — `cannot find 'AppState' in scope`.
 
 - [ ] **Step 3: Implement**
 
-Create `TimeLogger/AppState.swift`. `addProject` is included here because the timer tests need projects to exist; Task 6 adds deletion.
+Create `TimeJournal/AppState.swift`. `addProject` is included here because the timer tests need projects to exist; Task 6 adds deletion.
 
 ```swift
 import Foundation
@@ -895,13 +895,13 @@ final class AppState {
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: `** TEST SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add TimeLogger/AppState.swift TimeLoggerTests/AppStateTests.swift
+git add TimeJournal/AppState.swift TimeJournalTests/AppStateTests.swift
 git commit -m "Add AppState with stopwatch start/stop and crash-safe running timer"
 ```
 
@@ -910,8 +910,8 @@ git commit -m "Add AppState with stopwatch start/stop and crash-safe running tim
 ### Task 6: AppState — project deletion
 
 **Files:**
-- Modify: `TimeLogger/AppState.swift`
-- Create: `TimeLoggerTests/AppStateProjectTests.swift`
+- Modify: `TimeJournal/AppState.swift`
+- Create: `TimeJournalTests/AppStateProjectTests.swift`
 
 **Interfaces:**
 - Consumes: `AppState` (Task 5).
@@ -919,17 +919,17 @@ git commit -m "Add AppState with stopwatch start/stop and crash-safe running tim
 
 - [ ] **Step 1: Write the failing tests**
 
-Create `TimeLoggerTests/AppStateProjectTests.swift`:
+Create `TimeJournalTests/AppStateProjectTests.swift`:
 
 ```swift
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 @MainActor
 private func makeState(now: @escaping () -> Date = { Date(timeIntervalSince1970: 1_000_000) }) -> AppState {
     let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+        .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
     return AppState(storage: Storage(url: dir.appendingPathComponent("store.json")),
                     now: now,
                     calendar: .current)
@@ -1031,12 +1031,12 @@ struct AppStateProjectTests {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: compile failure — `value of type 'AppState' has no member 'deleteProject'`.
 
 - [ ] **Step 3: Implement**
 
-In `TimeLogger/AppState.swift`, add these methods to the `// MARK: - Projects` section, directly after `addProject`:
+In `TimeJournal/AppState.swift`, add these methods to the `// MARK: - Projects` section, directly after `addProject`:
 
 ```swift
     func select(_ id: UUID) {
@@ -1065,13 +1065,13 @@ In `TimeLogger/AppState.swift`, add these methods to the `// MARK: - Projects` s
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: `** TEST SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add TimeLogger/AppState.swift TimeLoggerTests/AppStateProjectTests.swift
+git add TimeJournal/AppState.swift TimeJournalTests/AppStateProjectTests.swift
 git commit -m "Add project deletion with session cascade"
 ```
 
@@ -1080,8 +1080,8 @@ git commit -m "Add project deletion with session cascade"
 ### Task 7: AppState — session editing and week navigation
 
 **Files:**
-- Modify: `TimeLogger/AppState.swift`
-- Create: `TimeLoggerTests/AppStateWeekTests.swift`
+- Modify: `TimeJournal/AppState.swift`
+- Create: `TimeJournalTests/AppStateWeekTests.swift`
 
 **Interfaces:**
 - Consumes: `AppState` (Tasks 5–6), `Week`, `Stats`, `DayTotal`.
@@ -1093,12 +1093,12 @@ git commit -m "Add project deletion with session cascade"
 
 - [ ] **Step 1: Write the failing tests**
 
-Create `TimeLoggerTests/AppStateWeekTests.swift`:
+Create `TimeJournalTests/AppStateWeekTests.swift`:
 
 ```swift
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 private func weekTestCalendar() -> Calendar {
     var cal = Calendar(identifier: .gregorian)
@@ -1114,7 +1114,7 @@ private func at(_ y: Int, _ m: Int, _ d: Int, _ h: Int = 0, _ min: Int = 0) -> D
 @MainActor
 private func makeState(now: @escaping () -> Date) -> AppState {
     let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+        .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
     return AppState(storage: Storage(url: dir.appendingPathComponent("store.json")),
                     now: now,
                     calendar: weekTestCalendar())
@@ -1244,12 +1244,12 @@ struct AppStateWeekNavigationTests {
 
 - [ ] **Step 2: Run the tests to verify they fail**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: compile failure — `value of type 'AppState' has no member 'displayedWeekStart'`.
 
 - [ ] **Step 3: Implement**
 
-In `TimeLogger/AppState.swift`:
+In `TimeJournal/AppState.swift`:
 
 Add a stored property alongside `lastStoppedSessionID`:
 
@@ -1326,13 +1326,13 @@ Add a new section before `// MARK: - Persistence`:
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: `** TEST SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add TimeLogger/AppState.swift TimeLoggerTests/AppStateWeekTests.swift
+git add TimeJournal/AppState.swift TimeJournalTests/AppStateWeekTests.swift
 git commit -m "Add session editing and week navigation to AppState"
 ```
 
@@ -1343,23 +1343,23 @@ git commit -m "Add session editing and week navigation to AppState"
 The domain layer is finished and tested. Everything from here is visual — verified by building, launching, and looking.
 
 **Files:**
-- Modify: `TimeLogger/TimeLoggerApp.swift`
-- Modify: `TimeLogger/ContentView.swift`
-- Create: `TimeLogger/ProjectBar.swift`
+- Modify: `TimeJournal/TimeJournalApp.swift`
+- Modify: `TimeJournal/ContentView.swift`
+- Create: `TimeJournal/ProjectBar.swift`
 
 **Interfaces:**
 - Consumes: `AppState` (Tasks 5–7).
-- Produces: `ContentView`, `ProjectBar`. `AppState` is placed in the SwiftUI environment by `TimeLoggerApp` and read with `@Environment(AppState.self)`.
+- Produces: `ContentView`, `ProjectBar`. `AppState` is placed in the SwiftUI environment by `TimeJournalApp` and read with `@Environment(AppState.self)`.
 
 - [ ] **Step 1: Wire AppState into the app**
 
-Replace the entire contents of `TimeLogger/TimeLoggerApp.swift`:
+Replace the entire contents of `TimeJournal/TimeJournalApp.swift`:
 
 ```swift
 import SwiftUI
 
 @main
-struct TimeLoggerApp: App {
+struct TimeJournalApp: App {
     @State private var app = AppState()
 
     var body: some Scene {
@@ -1375,7 +1375,7 @@ struct TimeLoggerApp: App {
 
 - [ ] **Step 2: Build the project switcher**
 
-Create `TimeLogger/ProjectBar.swift`:
+Create `TimeJournal/ProjectBar.swift`:
 
 ```swift
 import SwiftUI
@@ -1461,7 +1461,7 @@ struct ProjectBar: View {
 
 - [ ] **Step 3: Assemble the window**
 
-Replace the entire contents of `TimeLogger/ContentView.swift`:
+Replace the entire contents of `TimeJournal/ContentView.swift`:
 
 ```swift
 import SwiftUI
@@ -1501,7 +1501,7 @@ struct ContentView: View {
     ContentView()
         .environment(AppState(
             storage: Storage(url: URL(fileURLWithPath: NSTemporaryDirectory())
-                .appendingPathComponent("TimeLoggerPreview-\(UUID().uuidString)/store.json")),
+                .appendingPathComponent("TimeJournalPreview-\(UUID().uuidString)/store.json")),
             now: Date.init,
             calendar: .current))
 }
@@ -1523,7 +1523,7 @@ Check each of these:
 - [ ] **Step 5: Commit**
 
 ```bash
-git add TimeLogger/TimeLoggerApp.swift TimeLogger/ContentView.swift TimeLogger/ProjectBar.swift
+git add TimeJournal/TimeJournalApp.swift TimeJournal/ContentView.swift TimeJournal/ProjectBar.swift
 git commit -m "Add window shell and project switcher"
 ```
 
@@ -1532,8 +1532,8 @@ git commit -m "Add window shell and project switcher"
 ### Task 9: Timer panel
 
 **Files:**
-- Create: `TimeLogger/TimerPanel.swift`
-- Modify: `TimeLogger/ContentView.swift`
+- Create: `TimeJournal/TimerPanel.swift`
+- Modify: `TimeJournal/ContentView.swift`
 
 **Interfaces:**
 - Consumes: `AppState`, `Format`.
@@ -1541,7 +1541,7 @@ git commit -m "Add window shell and project switcher"
 
 - [ ] **Step 1: Build the panel**
 
-Create `TimeLogger/TimerPanel.swift`:
+Create `TimeJournal/TimerPanel.swift`:
 
 ```swift
 import SwiftUI
@@ -1610,7 +1610,7 @@ struct TimerPanel: View {
 
 - [ ] **Step 2: Put it in the window**
 
-In `TimeLogger/ContentView.swift`, replace the second pane:
+In `TimeJournal/ContentView.swift`, replace the second pane:
 
 ```swift
                 Color.clear
@@ -1641,7 +1641,7 @@ Check each of these:
 - [ ] **Step 4: Commit**
 
 ```bash
-git add TimeLogger/TimerPanel.swift TimeLogger/ContentView.swift
+git add TimeJournal/TimerPanel.swift TimeJournal/ContentView.swift
 git commit -m "Add timer panel with week total and stopwatch"
 ```
 
@@ -1650,8 +1650,8 @@ git commit -m "Add timer panel with week total and stopwatch"
 ### Task 10: Week view
 
 **Files:**
-- Create: `TimeLogger/WeekView.swift`
-- Modify: `TimeLogger/ContentView.swift`
+- Create: `TimeJournal/WeekView.swift`
+- Modify: `TimeJournal/ContentView.swift`
 
 **Interfaces:**
 - Consumes: `AppState`, `DayTotal`, `Format`.
@@ -1659,7 +1659,7 @@ git commit -m "Add timer panel with week total and stopwatch"
 
 - [ ] **Step 1: Build the panel**
 
-Create `TimeLogger/WeekView.swift`:
+Create `TimeJournal/WeekView.swift`:
 
 ```swift
 import SwiftUI
@@ -1766,7 +1766,7 @@ struct WeekView: View {
 
 - [ ] **Step 2: Put it in the window**
 
-In `TimeLogger/ContentView.swift`, replace the first pane:
+In `TimeJournal/ContentView.swift`, replace the first pane:
 
 ```swift
                 Color.clear
@@ -1797,7 +1797,7 @@ Check each of these:
 - [ ] **Step 4: Commit**
 
 ```bash
-git add TimeLogger/WeekView.swift TimeLogger/ContentView.swift
+git add TimeJournal/WeekView.swift TimeJournal/ContentView.swift
 git commit -m "Add week view with day bars and week paging"
 ```
 
@@ -1806,7 +1806,7 @@ git commit -m "Add week view with day bars and week paging"
 ### Task 11: Notes list
 
 **Files:**
-- Modify: `TimeLogger/TimerPanel.swift`
+- Modify: `TimeJournal/TimerPanel.swift`
 
 **Interfaces:**
 - Consumes: `AppState.weekSessions`, `AppState.lastStoppedSessionID`, `AppState.updateSession`.
@@ -1814,7 +1814,7 @@ git commit -m "Add week view with day bars and week paging"
 
 - [ ] **Step 1: Add the notes list**
 
-In `TimeLogger/TimerPanel.swift`, replace the `Spacer()` near the end of `body` with:
+In `TimeJournal/TimerPanel.swift`, replace the `Spacer()` near the end of `body` with:
 
 ```swift
             Divider()
@@ -1865,7 +1865,7 @@ And append this modifier to the outermost `VStack` in `body`, after `.padding(20
 
 - [ ] **Step 2: Add the row view**
 
-Append to `TimeLogger/TimerPanel.swift`:
+Append to `TimeJournal/TimerPanel.swift`:
 
 ```swift
 /// One stopped session: the day it happened, an editable note, and its length.
@@ -1934,7 +1934,7 @@ Check each of these:
 - [ ] **Step 4: Commit**
 
 ```bash
-git add TimeLogger/TimerPanel.swift
+git add TimeJournal/TimerPanel.swift
 git commit -m "Add notes list with focus-on-stop"
 ```
 
@@ -1943,8 +1943,8 @@ git commit -m "Add notes list with focus-on-stop"
 ### Task 12: Session editor
 
 **Files:**
-- Create: `TimeLogger/SessionEditor.swift`
-- Modify: `TimeLogger/TimerPanel.swift`
+- Create: `TimeJournal/SessionEditor.swift`
+- Modify: `TimeJournal/TimerPanel.swift`
 
 **Interfaces:**
 - Consumes: `AppState.updateSession`, `AppState.deleteSession`, `Format`.
@@ -1952,7 +1952,7 @@ git commit -m "Add notes list with focus-on-stop"
 
 - [ ] **Step 1: Build the editor**
 
-Create `TimeLogger/SessionEditor.swift`:
+Create `TimeJournal/SessionEditor.swift`:
 
 ```swift
 import SwiftUI
@@ -2022,7 +2022,7 @@ struct SessionEditor: View {
 
 - [ ] **Step 2: Open it from the notes list**
 
-In `TimeLogger/TimerPanel.swift`, add a state property to `SessionRow`:
+In `TimeJournal/TimerPanel.swift`, add a state property to `SessionRow`:
 
 ```swift
     @State private var isEditing = false
@@ -2061,7 +2061,7 @@ Check each of these:
 - [ ] **Step 4: Commit**
 
 ```bash
-git add TimeLogger/SessionEditor.swift TimeLogger/TimerPanel.swift
+git add TimeJournal/SessionEditor.swift TimeJournal/TimerPanel.swift
 git commit -m "Add session editor popover"
 ```
 
@@ -2070,8 +2070,8 @@ git commit -m "Add session editor popover"
 ### Task 13: Menu bar timer
 
 **Files:**
-- Create: `TimeLogger/MenuBarPanel.swift`
-- Modify: `TimeLogger/TimeLoggerApp.swift`
+- Create: `TimeJournal/MenuBarPanel.swift`
+- Modify: `TimeJournal/TimeJournalApp.swift`
 
 **Interfaces:**
 - Consumes: `AppState`, `Format`.
@@ -2079,7 +2079,7 @@ git commit -m "Add session editor popover"
 
 - [ ] **Step 1: Build the popover**
 
-Create `TimeLogger/MenuBarPanel.swift`:
+Create `TimeJournal/MenuBarPanel.swift`:
 
 ```swift
 import SwiftUI
@@ -2123,7 +2123,7 @@ struct MenuBarPanel: View {
             }
 
             Divider()
-            Button("Quit TimeLogger") { NSApplication.shared.terminate(nil) }
+            Button("Quit Time Journal") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.accessoryBar)
         }
         .padding(14)
@@ -2134,7 +2134,7 @@ struct MenuBarPanel: View {
 
 - [ ] **Step 2: Add the menu bar scene**
 
-In `TimeLogger/TimeLoggerApp.swift`, add a second scene after the `WindowGroup` block (after `.windowResizability(.contentMinSize)`):
+In `TimeJournal/TimeJournalApp.swift`, add a second scene after the `WindowGroup` block (after `.windowResizability(.contentMinSize)`):
 
 ```swift
         MenuBarExtra {
@@ -2162,12 +2162,12 @@ Check each of these:
 - The popover then shows the project name, elapsed time, and a red Stop button.
 - Stopping from the menu bar adds the session to the main window's notes list.
 - Starting from the menu bar while a different project's timer runs stops the first and records it.
-- **Quit TimeLogger** quits the app.
+- **Quit Time Journal** quits the app.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add TimeLogger/MenuBarPanel.swift TimeLogger/TimeLoggerApp.swift
+git add TimeJournal/MenuBarPanel.swift TimeJournal/TimeJournalApp.swift
 git commit -m "Add menu bar timer"
 ```
 
@@ -2184,12 +2184,12 @@ git commit -m "Add menu bar timer"
 
 - [ ] **Step 1: Run the whole test suite**
 
-Run: `xcodebuild test -scheme TimeLogger -configuration Debug -derivedDataPath build -only-testing:TimeLoggerTests 2>&1 | tail -20`
+Run: `xcodebuild test -scheme TimeJournal -configuration Debug -derivedDataPath build -only-testing:TimeJournalTests 2>&1 | tail -20`
 Expected: `** TEST SUCCEEDED **` with every test from Tasks 2–7 passing.
 
 - [ ] **Step 2: Confirm the build is warning-clean**
 
-Run: `xcodebuild -scheme TimeLogger -configuration Debug -derivedDataPath build build 2>&1 | grep -E "warning:" | grep -v "build/" | sort -u`
+Run: `xcodebuild -scheme TimeJournal -configuration Debug -derivedDataPath build build 2>&1 | grep -E "warning:" | grep -v "build/" | sort -u`
 Expected: no output. Fix any warnings in the app's own source; ignore warnings from Apple SDK headers.
 
 - [ ] **Step 3: Walk the whole app in both appearances**

@@ -1,11 +1,11 @@
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 @MainActor
 private func makeState(now: @escaping () -> Date = { Date(timeIntervalSince1970: 1_000_000) }) -> AppState {
     let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+        .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
     var cal = Calendar(identifier: .gregorian)
     cal.timeZone = TimeZone(identifier: "America/New_York")!
     return AppState(storage: Storage(url: dir.appendingPathComponent("store.json")),
@@ -119,7 +119,7 @@ struct AppStateTimerTests {
 
     @Test func corruptStoreSurfacesAnError() throws {
         let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+            .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
         let storage = Storage(url: dir.appendingPathComponent("store.json"))
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         try Data("not json".utf8).write(to: storage.url)
@@ -132,7 +132,7 @@ struct AppStateTimerTests {
     /// original file would destroy every session the user ever recorded.
     @Test func corruptStoreIsMovedAsideNotOverwritten() throws {
         let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+            .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
         let storage = Storage(url: dir.appendingPathComponent("store.json"))
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         try Data("not json".utf8).write(to: storage.url)
@@ -159,7 +159,7 @@ struct AppStateViewModeTests {
     /// A scratch domain: `.standard` here is the real app's preferences, and a test has no
     /// business changing which view the user left the app in.
     private func scratchDefaults() -> (defaults: UserDefaults, name: String) {
-        let name = "TimeLoggerTests-\(UUID().uuidString)"
+        let name = "TimeJournalTests-\(UUID().uuidString)"
         return (UserDefaults(suiteName: name)!, name)
     }
 
@@ -172,7 +172,7 @@ struct AppStateViewModeTests {
 
     private func scratchStorage() -> Storage {
         Storage(url: URL(fileURLWithPath: NSTemporaryDirectory())
-            .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)/store.json"))
+            .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)/store.json"))
     }
 
     @Test func defaultsToTheDayBars() {

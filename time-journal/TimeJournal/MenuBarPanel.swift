@@ -39,7 +39,7 @@ struct MenuBarPanel: View {
             }
 
             Divider()
-            Button("Quit TimeLogger") { NSApplication.shared.terminate(nil) }
+            Button("Quit Time Journal") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.accessoryBar)
         }
         .padding(14)

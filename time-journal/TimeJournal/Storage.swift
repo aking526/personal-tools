@@ -7,6 +7,11 @@ nonisolated struct Storage {
 
     /// Under the app sandbox this resolves inside
     /// ~/Library/Containers/com.alistair.TimeLogger/Data/...
+    ///
+    /// The app was renamed to Time Journal, but both the bundle identifier and this
+    /// directory name deliberately still say TimeLogger: the container is keyed by
+    /// bundle identifier, so changing either one would point a sandboxed app at a
+    /// fresh empty directory it cannot read the old history from.
     static func appSupport() -> Storage {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         return Storage(url: base.appendingPathComponent("TimeLogger/store.json"))

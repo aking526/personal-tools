@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 private func weekTestCalendar() -> Calendar {
     var cal = Calendar(identifier: .gregorian)
@@ -16,7 +16,7 @@ private func at(_ y: Int, _ m: Int, _ d: Int, _ h: Int = 0, _ min: Int = 0) -> D
 @MainActor
 private func makeState(now: @escaping () -> Date) -> AppState {
     let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+        .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
     return AppState(storage: Storage(url: dir.appendingPathComponent("store.json")),
                     now: now,
                     calendar: weekTestCalendar())

@@ -44,8 +44,8 @@ mode, SF Symbols, system accent color) for the aesthetic requirement.
 
 The Xcode project is created and confirmed working:
 
-- `xcodebuild -scheme TimeLogger -configuration Debug -derivedDataPath build build` → **BUILD SUCCEEDED**
-- `xcodebuild test -scheme TimeLogger -derivedDataPath build -only-testing:TimeLoggerTests` → **TEST SUCCEEDED**
+- `xcodebuild -scheme TimeJournal -configuration Debug -derivedDataPath build build` → **BUILD SUCCEEDED**
+- `xcodebuild test -scheme TimeJournal -derivedDataPath build -only-testing:TimeJournalTests` → **TEST SUCCEEDED**
 - Test target uses **Swift Testing** (`import Testing`), bundled with the toolchain — no dependency.
 - Source folders are **file-system synchronized groups**, so adding a `.swift` file to the
   directory adds it to the build. No `project.pbxproj` edits are ever required.
@@ -160,7 +160,7 @@ its methods; **no view touches storage directly.** That one rule is the whole ar
 | `WeekView.swift` | Left panel: week header, seven day rows, total. |
 | `TimerPanel.swift` | Right panel: week total, stopwatch, Start/Stop, notes list. |
 | `SessionEditor.swift` | Popover for editing or deleting one session. |
-| `TimeLoggerApp.swift` | `@main`, `WindowGroup`, `MenuBarExtra`. (Already exists.) |
+| `TimeJournalApp.swift` | `@main`, `WindowGroup`, `MenuBarExtra`. (Already exists.) |
 | `ContentView.swift` | Assembles `ProjectBar` + `HSplitView`. (Already exists, will be replaced.) |
 
 Each view file reads from `AppState` and renders; each is independently previewable in the
@@ -262,7 +262,7 @@ Clicking it opens a small popover:
 
 ## Testing
 
-One test file, `TimeLoggerTests.swift`, using Swift Testing. It covers only where bugs
+One test file, `TimeJournalTests.swift`, using Swift Testing. It covers only where bugs
 actually hide — the date math and the state transition — not the views:
 
 1. Sessions bucket into the correct days of a week.
@@ -290,8 +290,8 @@ not. Manual entry was added after the first build (see **Manual entry** above).
 
 ```bash
 ./run.sh                                          # build and launch
-xcodebuild test -scheme TimeLogger -derivedDataPath build -only-testing:TimeLoggerTests
-build/Build/Products/Debug/TimeLogger.app/Contents/MacOS/TimeLogger   # run with stdout in terminal
+xcodebuild test -scheme TimeJournal -derivedDataPath build -only-testing:TimeJournalTests
+build/Build/Products/Debug/TimeJournal.app/Contents/MacOS/TimeJournal   # run with stdout in terminal
 ```
 
 `run.sh` (to be written):
@@ -299,6 +299,6 @@ build/Build/Products/Debug/TimeLogger.app/Contents/MacOS/TimeLogger   # run with
 ```bash
 #!/bin/bash
 set -e
-xcodebuild -scheme TimeLogger -configuration Debug -derivedDataPath build build
-open build/Build/Products/Debug/TimeLogger.app
+xcodebuild -scheme TimeJournal -configuration Debug -derivedDataPath build build
+open build/Build/Products/Debug/TimeJournal.app
 ```

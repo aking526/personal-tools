@@ -1,13 +1,13 @@
 //
-//  TimeLoggerUITestsLaunchTests.swift
-//  TimeLoggerUITests
+//  TimeJournalUITestsLaunchTests.swift
+//  TimeJournalUITests
 //
 //  Created by Alistair King on 8/8/26.
 //
 
 import XCTest
 
-final class TimeLoggerUITestsLaunchTests: XCTestCase {
+final class TimeJournalUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

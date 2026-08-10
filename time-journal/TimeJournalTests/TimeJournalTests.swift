@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 struct FormatTests {
     @Test func clockPadsToTwoDigits() {

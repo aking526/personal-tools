@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 /// Pinned to a fixed zone so results never depend on the machine running the tests.
 private func testCalendar() -> Calendar {

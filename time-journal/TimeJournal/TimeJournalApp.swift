@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct TimeLoggerApp: App {
+struct TimeJournalApp: App {
     @State private var app = AppState()
 
     var body: some Scene {

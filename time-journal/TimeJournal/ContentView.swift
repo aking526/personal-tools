@@ -44,7 +44,7 @@ struct ContentView: View {
     ContentView()
         .environment(AppState(
             storage: Storage(url: URL(fileURLWithPath: NSTemporaryDirectory())
-                .appendingPathComponent("TimeLoggerPreview-\(UUID().uuidString)/store.json")),
+                .appendingPathComponent("TimeJournalPreview-\(UUID().uuidString)/store.json")),
             now: Date.init,
             calendar: .current))
 }

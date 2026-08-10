@@ -1,10 +1,10 @@
 import Testing
 import Foundation
-@testable import TimeLogger
+@testable import TimeJournal
 
 private func tempStorage() -> Storage {
     let dir = URL(fileURLWithPath: NSTemporaryDirectory())
-        .appendingPathComponent("TimeLoggerTests-\(UUID().uuidString)")
+        .appendingPathComponent("TimeJournalTests-\(UUID().uuidString)")
     return Storage(url: dir.appendingPathComponent("store.json"))
 }
 

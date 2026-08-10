@@ -12,37 +12,37 @@
 			containerPortal = CFD3555A3027BC770054B40C /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = CFD355613027BC770054B40C;
-			remoteInfo = TimeLogger;
+			remoteInfo = TimeJournal;
 		};
 		CFD3557A3027BC7A0054B40C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = CFD3555A3027BC770054B40C /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = CFD355613027BC770054B40C;
-			remoteInfo = TimeLogger;
+			remoteInfo = TimeJournal;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		CFD355623027BC780054B40C /* TimeLogger.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeLogger.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		CFD3556F3027BC7A0054B40C /* TimeLoggerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeLoggerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		CFD355793027BC7A0054B40C /* TimeLoggerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeLoggerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CFD355623027BC780054B40C /* TimeJournal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TimeJournal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CFD3556F3027BC7A0054B40C /* TimeJournalTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeJournalTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CFD355793027BC7A0054B40C /* TimeJournalUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TimeJournalUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		CFD355643027BC780054B40C /* TimeLogger */ = {
+		CFD355643027BC780054B40C /* TimeJournal */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TimeLogger;
+			path = TimeJournal;
 			sourceTree = "<group>";
 		};
-		CFD355723027BC7A0054B40C /* TimeLoggerTests */ = {
+		CFD355723027BC7A0054B40C /* TimeJournalTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TimeLoggerTests;
+			path = TimeJournalTests;
 			sourceTree = "<group>";
 		};
-		CFD3557C3027BC7A0054B40C /* TimeLoggerUITests */ = {
+		CFD3557C3027BC7A0054B40C /* TimeJournalUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TimeLoggerUITests;
+			path = TimeJournalUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -75,9 +75,9 @@
 		CFD355593027BC770054B40C = {
 			isa = PBXGroup;
 			children = (
-				CFD355643027BC780054B40C /* TimeLogger */,
-				CFD355723027BC7A0054B40C /* TimeLoggerTests */,
-				CFD3557C3027BC7A0054B40C /* TimeLoggerUITests */,
+				CFD355643027BC780054B40C /* TimeJournal */,
+				CFD355723027BC7A0054B40C /* TimeJournalTests */,
+				CFD3557C3027BC7A0054B40C /* TimeJournalUITests */,
 				CFD355633027BC780054B40C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,9 +85,9 @@
 		CFD355633027BC780054B40C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				CFD355623027BC780054B40C /* TimeLogger.app */,
-				CFD3556F3027BC7A0054B40C /* TimeLoggerTests.xctest */,
-				CFD355793027BC7A0054B40C /* TimeLoggerUITests.xctest */,
+				CFD355623027BC780054B40C /* TimeJournal.app */,
+				CFD3556F3027BC7A0054B40C /* TimeJournalTests.xctest */,
+				CFD355793027BC7A0054B40C /* TimeJournalUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -95,9 +95,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		CFD355613027BC770054B40C /* TimeLogger */ = {
+		CFD355613027BC770054B40C /* TimeJournal */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CFD355833027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeLogger" */;
+			buildConfigurationList = CFD355833027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeJournal" */;
 			buildPhases = (
 				CFD3555E3027BC770054B40C /* Sources */,
 				CFD3555F3027BC770054B40C /* Frameworks */,
@@ -108,18 +108,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				CFD355643027BC780054B40C /* TimeLogger */,
+				CFD355643027BC780054B40C /* TimeJournal */,
 			);
-			name = TimeLogger;
+			name = TimeJournal;
 			packageProductDependencies = (
 			);
-			productName = TimeLogger;
-			productReference = CFD355623027BC780054B40C /* TimeLogger.app */;
+			productName = TimeJournal;
+			productReference = CFD355623027BC780054B40C /* TimeJournal.app */;
 			productType = "com.apple.product-type.application";
 		};
-		CFD3556E3027BC7A0054B40C /* TimeLoggerTests */ = {
+		CFD3556E3027BC7A0054B40C /* TimeJournalTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CFD355863027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeLoggerTests" */;
+			buildConfigurationList = CFD355863027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeJournalTests" */;
 			buildPhases = (
 				CFD3556B3027BC7A0054B40C /* Sources */,
 				CFD3556C3027BC7A0054B40C /* Frameworks */,
@@ -131,18 +131,18 @@
 				CFD355713027BC7A0054B40C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				CFD355723027BC7A0054B40C /* TimeLoggerTests */,
+				CFD355723027BC7A0054B40C /* TimeJournalTests */,
 			);
-			name = TimeLoggerTests;
+			name = TimeJournalTests;
 			packageProductDependencies = (
 			);
-			productName = TimeLoggerTests;
-			productReference = CFD3556F3027BC7A0054B40C /* TimeLoggerTests.xctest */;
+			productName = TimeJournalTests;
+			productReference = CFD3556F3027BC7A0054B40C /* TimeJournalTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		CFD355783027BC7A0054B40C /* TimeLoggerUITests */ = {
+		CFD355783027BC7A0054B40C /* TimeJournalUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CFD355893027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeLoggerUITests" */;
+			buildConfigurationList = CFD355893027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeJournalUITests" */;
 			buildPhases = (
 				CFD355753027BC7A0054B40C /* Sources */,
 				CFD355763027BC7A0054B40C /* Frameworks */,
@@ -154,13 +154,13 @@
 				CFD3557B3027BC7A0054B40C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				CFD3557C3027BC7A0054B40C /* TimeLoggerUITests */,
+				CFD3557C3027BC7A0054B40C /* TimeJournalUITests */,
 			);
-			name = TimeLoggerUITests;
+			name = TimeJournalUITests;
 			packageProductDependencies = (
 			);
-			productName = TimeLoggerUITests;
-			productReference = CFD355793027BC7A0054B40C /* TimeLoggerUITests.xctest */;
+			productName = TimeJournalUITests;
+			productReference = CFD355793027BC7A0054B40C /* TimeJournalUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -186,7 +186,7 @@
 					};
 				};
 			};
-			buildConfigurationList = CFD3555D3027BC770054B40C /* Build configuration list for PBXProject "TimeLogger" */;
+			buildConfigurationList = CFD3555D3027BC770054B40C /* Build configuration list for PBXProject "TimeJournal" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -200,9 +200,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CFD355613027BC770054B40C /* TimeLogger */,
-				CFD3556E3027BC7A0054B40C /* TimeLoggerTests */,
-				CFD355783027BC7A0054B40C /* TimeLoggerUITests */,
+				CFD355613027BC770054B40C /* TimeJournal */,
+				CFD3556E3027BC7A0054B40C /* TimeJournalTests */,
+				CFD355783027BC7A0054B40C /* TimeJournalUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -258,12 +258,12 @@
 /* Begin PBXTargetDependency section */
 		CFD355713027BC7A0054B40C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = CFD355613027BC770054B40C /* TimeLogger */;
+			target = CFD355613027BC770054B40C /* TimeJournal */;
 			targetProxy = CFD355703027BC7A0054B40C /* PBXContainerItemProxy */;
 		};
 		CFD3557B3027BC7A0054B40C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = CFD355613027BC770054B40C /* TimeLogger */;
+			target = CFD355613027BC770054B40C /* TimeJournal */;
 			targetProxy = CFD3557A3027BC7A0054B40C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -399,6 +399,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Time Journal";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -429,6 +430,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Time Journal";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -456,14 +458,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.alistair.TimeLoggerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alistair.TimeJournalTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeLogger.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TimeLogger";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeJournal.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TimeJournal";
 			};
 			name = Debug;
 		};
@@ -476,14 +478,14 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.alistair.TimeLoggerTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alistair.TimeJournalTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeLogger.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TimeLogger";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TimeJournal.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TimeJournal";
 			};
 			name = Release;
 		};
@@ -494,14 +496,14 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.alistair.TimeLoggerUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alistair.TimeJournalUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = TimeLogger;
+				TEST_TARGET_NAME = TimeJournal;
 			};
 			name = Debug;
 		};
@@ -512,21 +514,21 @@
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.alistair.TimeLoggerUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alistair.TimeJournalUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = TimeLogger;
+				TEST_TARGET_NAME = TimeJournal;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		CFD3555D3027BC770054B40C /* Build configuration list for PBXProject "TimeLogger" */ = {
+		CFD3555D3027BC770054B40C /* Build configuration list for PBXProject "TimeJournal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CFD355813027BC7A0054B40C /* Debug */,
@@ -535,7 +537,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CFD355833027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeLogger" */ = {
+		CFD355833027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeJournal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CFD355843027BC7A0054B40C /* Debug */,
@@ -544,7 +546,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CFD355863027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeLoggerTests" */ = {
+		CFD355863027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeJournalTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CFD355873027BC7A0054B40C /* Debug */,
@@ -553,7 +555,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		CFD355893027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeLoggerUITests" */ = {
+		CFD355893027BC7A0054B40C /* Build configuration list for PBXNativeTarget "TimeJournalUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CFD3558A3027BC7A0054B40C /* Debug */,

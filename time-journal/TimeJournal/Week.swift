@@ -76,4 +76,19 @@ nonisolated enum Stats {
         dayTotals(sessions: sessions, projectID: projectID, weekStart: weekStart, calendar: calendar)
             .reduce(0) { $0 + $1.seconds }
     }
+
+    /// One day's total, for any day — not just a day of the displayed week. Same rule as
+    /// `dayTotals`: a session belongs to the day it started on. The end of the day comes from
+    /// `date(byAdding: .day)` rather than 86,400 seconds, so the clocks going forward or back
+    /// doesn't drop an hour of work out of the day it happened on.
+    static func dayTotal(sessions: [Session],
+                         projectID: UUID,
+                         day: Date,
+                         calendar: Calendar) -> TimeInterval {
+        let start = calendar.startOfDay(for: day)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return 0 }
+        return sessions
+            .filter { $0.projectID == projectID && $0.start >= start && $0.start < end }
+            .reduce(0) { $0 + $1.duration }
+    }
 }

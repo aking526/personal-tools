@@ -1,22 +1,26 @@
 import SwiftUI
+import Combine
 
-/// Right pane: what the displayed week adds up to, and the control that changes it.
+/// Right pane: what the displayed week and today add up to, and the control that changes them.
 struct TimerPanel: View {
     @Environment(AppState.self) private var app
     @FocusState.Binding var focusedSession: UUID?
     @State private var isLoggingManually = false
 
+    /// The day the "today" figure is about. Held in state rather than read from the clock as the
+    /// tally draws, so the day-change notification below can move it onto the new day in a window
+    /// that was left open overnight — otherwise the panel would keep calling yesterday "today".
+    @State private var today = Date.now
+
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(app.isCurrentWeek ? "THIS WEEK" : app.weekLabel.uppercased())
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .tracking(0.8)
-                Text(Format.total(app.weekTotal))
-                    .font(.system(size: 34, weight: .light))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
+            HStack(alignment: .top, spacing: 16) {
+                tally(app.isCurrentWeek ? "THIS WEEK" : app.weekLabel.uppercased(),
+                      seconds: app.weekTotal)
+                Divider()
+                    .frame(height: 44)
+                tally("TODAY", seconds: app.dayTotal(for: today))
+                Spacer(minLength: 0)
             }
 
             Divider()
@@ -97,6 +101,33 @@ struct TimerPanel: View {
             // actually guarantees the row is on screen; this just refuses to lie if it isn't.
             guard let id, app.weekSessions.contains(where: { $0.id == id }) else { return }
             focusedSession = id   // cursor lands in the note that just appeared
+        }
+        .onAppear { today = app.currentDate }   // the app's clock, which a test can pin
+        .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+            today = app.currentDate
+            // This panel is on screen in both week drawings, so it is also the one place that can
+            // carry the window into the new week whichever one is showing. The calendar does the
+            // same when it's up; the call only moves a window still parked on the current week.
+            app.followDayChange()
+        }
+    }
+
+    /// One headline figure with its label. Both tallies share this so the week and the day can't
+    /// drift apart in type or spacing.
+    private func tally(_ label: String, seconds: TimeInterval) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .tracking(0.8)
+            Text(Format.total(seconds))
+                .font(.system(size: 34, weight: .light))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+                // A three-digit hour count is rare but real. Shrinking beats a clipped total,
+                // and beats the two figures shoving each other out of the pane.
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
         }
     }
 

@@ -244,6 +244,20 @@ final class AppState {
         dayTotals.reduce(0) { $0 + $1.seconds }
     }
 
+    /// One day's total for the selected project, independent of the week on screen — paging back
+    /// through history doesn't change what today came to. Stored sessions only, like `weekTotal`:
+    /// a timer still running is the stopwatch's business, not the day's tally.
+    ///
+    /// The day is passed in rather than read from the clock here, because a view can't observe
+    /// `now()` — the panel holds the day in state so it can re-ask after midnight.
+    func dayTotal(for date: Date) -> TimeInterval {
+        guard let projectID = store.selectedProjectID else { return 0 }
+        return Stats.dayTotal(sessions: store.sessions,
+                              projectID: projectID,
+                              day: date,
+                              calendar: calendar)
+    }
+
     /// Sessions of the selected project in the displayed week, newest first.
     var weekSessions: [Session] {
         guard let projectID = store.selectedProjectID else { return [] }

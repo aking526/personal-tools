@@ -113,6 +113,54 @@ struct StatsTests {
         #expect(totals[2].seconds == 0)      // Wednesday untouched
     }
 
+    @Test func dayTotalSumsOneDayOnly() {
+        let cal = testCalendar()
+        let sessions = [
+            Session(projectID: projectA, start: at(2026, 2, 3, 9, 0, cal), end: at(2026, 2, 3, 10, 0, cal)),
+            Session(projectID: projectA, start: at(2026, 2, 3, 14, 0, cal), end: at(2026, 2, 3, 14, 30, cal)),
+            Session(projectID: projectB, start: at(2026, 2, 3, 8, 0, cal), end: at(2026, 2, 3, 12, 0, cal)),
+            Session(projectID: projectA, start: at(2026, 2, 4, 9, 0, cal), end: at(2026, 2, 4, 17, 0, cal)),
+            Session(projectID: projectA, start: at(2026, 2, 2, 9, 0, cal), end: at(2026, 2, 2, 17, 0, cal)),
+        ]
+        // The time of day asked about doesn't matter — the whole day is counted, including work
+        // logged later in it.
+        for hour in [0, 9, 23] {
+            #expect(Stats.dayTotal(sessions: sessions,
+                                   projectID: projectA,
+                                   day: at(2026, 2, 3, hour, 0, cal),
+                                   calendar: cal) == 3600 + 1800)
+        }
+        // A day with nothing on it is zero, not the neighbouring days bleeding in.
+        #expect(Stats.dayTotal(sessions: sessions,
+                               projectID: projectA,
+                               day: at(2026, 2, 5, 12, 0, cal),
+                               calendar: cal) == 0)
+    }
+
+    /// Same rule as the week: the day a session started on owns all of it.
+    @Test func dayTotalCountsAnOvernightSessionOnItsStartDay() {
+        let cal = testCalendar()
+        let sessions = [
+            Session(projectID: projectA, start: at(2026, 2, 3, 23, 30, cal), end: at(2026, 2, 4, 1, 30, cal))
+        ]
+        #expect(Stats.dayTotal(sessions: sessions, projectID: projectA,
+                               day: at(2026, 2, 3, 12, 0, cal), calendar: cal) == 2 * 3600)
+        #expect(Stats.dayTotal(sessions: sessions, projectID: projectA,
+                               day: at(2026, 2, 4, 12, 0, cal), calendar: cal) == 0)
+    }
+
+    /// The 23-hour spring-forward day: adding a day beats adding 86,400 seconds, which would
+    /// stretch the window an hour into the Monday after and pull its first session in.
+    @Test func dayTotalSurvivesDaylightSaving() {
+        let cal = testCalendar()
+        let sessions = [
+            Session(projectID: projectA, start: at(2026, 3, 8, 1, 30, cal), end: at(2026, 3, 8, 3, 30, cal)),
+            Session(projectID: projectA, start: at(2026, 3, 9, 0, 15, cal), end: at(2026, 3, 9, 1, 15, cal)),
+        ]
+        #expect(Stats.dayTotal(sessions: sessions, projectID: projectA,
+                               day: at(2026, 3, 8, 12, 0, cal), calendar: cal) == 3600)
+    }
+
     @Test func weekTotalSurvivesDaylightSaving() {
         let cal = testCalendar()
         let weekStart = at(2026, 3, 2, 0, 0, cal)

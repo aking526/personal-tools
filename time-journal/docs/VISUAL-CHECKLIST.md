@@ -45,7 +45,7 @@ These three are the ones most likely to be wrong, and the most consequential if 
 - [ ] **Digits do not jitter or shift horizontally as they change.** This is the
       `.monospacedDigit()` check — its absence is what makes a readout look cheap.
 - [ ] ~5 seconds then Stop returns the stopwatch to `00:00:00`; a full minute makes
-      "THIS WEEK" read `1m`.
+      "THIS WEEK" read `1m` — and "TODAY" beside it too, since the minute is today's.
 - [ ] Start a timer, **quit without stopping**, relaunch: the stopwatch is still running with
       elapsed time carried across the restart. (This is the crash-safety guarantee.)
 - [ ] Typing a space inside a note does **not** start or stop the timer. The bare space-bar
@@ -60,6 +60,8 @@ These three are the ones most likely to be wrong, and the most consequential if 
 - [ ] A minute of tracked time produces a bar on today's row reading `0:01`.
 - [ ] `‹` moves to the previous week: the header becomes a clickable link, rows go to `—`, and
       the right panel's heading changes from "THIS WEEK" to the date range with a `0m` total.
+      The "TODAY" figure beside it does **not** move — it is about today, not about the week
+      on screen.
 - [ ] Clicking the header link returns to the current week and the data comes back.
 - [ ] Paging back across a month boundary shows a label like `Jan 26 – Feb 1`.
 - [ ] Dragging the split divider resizes both panes without clipping the totals column.

@@ -167,6 +167,36 @@ struct AppStateWeekNavigationTests {
         #expect(state.weekSessions.count == 1)
     }
 
+    /// The day figure beside the week total answers "today", not "today in the week I'm looking
+    /// at" — paging back through history must leave it alone.
+    @Test func theDayTotalIgnoresTheDisplayedWeek() {
+        var clock = at(2026, 2, 4, 9, 0)            // Wednesday
+        let state = makeState(now: { clock })
+        let project = state.addProject(name: "Thesis")
+
+        // An hour on Tuesday, then two on Wednesday.
+        clock = at(2026, 2, 3, 9, 0)
+        state.start(projectID: project.id)
+        clock = at(2026, 2, 3, 10, 0)
+        state.stop()
+        clock = at(2026, 2, 4, 9, 0)
+        state.start(projectID: project.id)
+        clock = at(2026, 2, 4, 11, 0)
+        state.stop()
+
+        #expect(state.dayTotal(for: state.currentDate) == 2 * 3600)
+        #expect(state.weekTotal == 3 * 3600)
+
+        state.goToWeek(offset: -1)
+        #expect(state.weekTotal == 0)
+        #expect(state.dayTotal(for: state.currentDate) == 2 * 3600)
+    }
+
+    @Test func theDayTotalIsZeroWithNoProjectSelected() {
+        let state = makeState(now: { at(2026, 2, 4, 15, 0) })
+        #expect(state.dayTotal(for: state.currentDate) == 0)
+    }
+
     @Test func weekSessionsAreNewestFirst() {
         var clock = at(2026, 2, 2, 9, 0)
         let state = makeState(now: { clock })

@@ -2,10 +2,6 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(AppState.self) private var app
-    /// Owned here rather than in TimerPanel so that clicking anywhere in the window —
-    /// including the week panel — ends note editing. A text field that can only be left
-    /// by tabbing feels broken, and nothing else in this window takes focus on click.
-    @FocusState private var focusedSession: UUID?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,12 +15,10 @@ struct ContentView: View {
                     }
                 }
                 .frame(minWidth: app.viewMode == .calendar ? 380 : 320, idealWidth: 400)
-                TimerPanel(focusedSession: $focusedSession)
+                TimerPanel()
                     .frame(minWidth: 300, idealWidth: 420)
             }
         }
-        .contentShape(Rectangle())   // blank space is only clickable if it has a shape
-        .onTapGesture { focusedSession = nil }
         .frame(minWidth: 720, minHeight: 460)
         .alert("Time Log Problem",
                isPresented: Binding(get: { app.loadError != nil },

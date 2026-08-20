@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// Repairs the inevitable "left it running overnight", logs the block of work you forgot to
 /// start the clock for, and is the one place a session's note and its times can be corrected
@@ -20,20 +21,27 @@ struct SessionEditor: View {
     /// nil when logging time after the fact — nothing exists yet to update or delete.
     private let session: Session?
     private let projectID: UUID
+    /// When true (notes-list click / post-stop annotate), keep the note field focused and
+    /// move the caret to the end so typing doesn't wipe an existing note. When false
+    /// (calendar / Edit Times / Log Time), refuse AppKit's automatic first-responder so the
+    /// note isn't selected for someone who opened the popover to adjust times.
+    private let focusNoteOnOpen: Bool
 
     private enum Field { case start, end }
 
-    init(session: Session) {
+    init(session: Session, focusNoteOnOpen: Bool = false) {
         self.session = session
         self.projectID = session.projectID
+        self.focusNoteOnOpen = focusNoteOnOpen
         _start = State(initialValue: session.start)
         _end = State(initialValue: session.end)
         _note = State(initialValue: session.note)
     }
 
-    init(newSessionFor projectID: UUID, start: Date, end: Date) {
+    init(newSessionFor projectID: UUID, start: Date, end: Date, focusNoteOnOpen: Bool = false) {
         self.session = nil
         self.projectID = projectID
+        self.focusNoteOnOpen = focusNoteOnOpen
         _start = State(initialValue: start)
         _end = State(initialValue: end)
         _note = State(initialValue: "")
@@ -74,13 +82,26 @@ struct SessionEditor: View {
         // selects everything it holds when it gets it — so this opened with the whole note
         // highlighted, one keystroke from being wiped by someone who came to read the times.
         // Nothing can be clicked before the popover exists, so the first focus it ever sees is
-        // that automatic one, and it is the only one refused. Pre-empting it does not work:
-        // `defaultFocus` and clearing the state from `.task` both run before SwiftUI assigns.
+        // that automatic one. Refuse it unless the caller asked for note focus; in that case
+        // keep focus but move the caret to the end so typing extends the note.
+        // Pre-empting with `defaultFocus` / `.task` does not work: both run before SwiftUI assigns.
         .onChange(of: isNoteFocused) { _, focused in
             guard focused, !refusedInitialFocus else { return }
             refusedInitialFocus = true
-            isNoteFocused = false
+            if focusNoteOnOpen {
+                DispatchQueue.main.async { placeCaretAtEndOfNote() }
+            } else {
+                isNoteFocused = false
+            }
         }
+    }
+
+    /// AppKit's automatic first-responder selects the whole field; collapse that to a caret
+    /// after the last character so an existing note isn't one keystroke from deletion.
+    private func placeCaretAtEndOfNote() {
+        guard let editor = NSApp.keyWindow?.fieldEditor(false, for: nil) as? NSTextView else { return }
+        let end = (editor.string as NSString).length
+        editor.setSelectedRange(NSRange(location: end, length: 0))
     }
 
     /// The note is the session's title, so it sits where a title goes and carries a title's

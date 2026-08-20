@@ -99,7 +99,7 @@ struct CalendarView: View {
     private var dayHeaderRow: some View {
         HStack(spacing: 0) {
             Color.clear.frame(width: gutterWidth, height: 1)
-            ForEach(days, id: \.self) { day in
+            ForEach(Array(zip(days, app.dayTotals)), id: \.0) { day, total in
                 let isToday = isToday(day)
                 VStack(spacing: 1) {
                     Text(Format.weekday(day, calendar: app.calendar))
@@ -107,6 +107,10 @@ struct CalendarView: View {
                     Text(String(app.calendar.component(.day, from: day)))
                         .font(.caption.weight(isToday ? .bold : .regular))
                         .monospacedDigit()
+                    Text(total.seconds == 0 ? "—" : Format.short(total.seconds))
+                        .font(.caption2)
+                        .monospacedDigit()
+                        .foregroundStyle(total.seconds == 0 ? .tertiary : .secondary)
                 }
                 .foregroundStyle(isToday ? Color.accentColor : .secondary)
                 .frame(maxWidth: .infinity)

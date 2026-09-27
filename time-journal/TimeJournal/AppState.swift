@@ -7,6 +7,17 @@ nonisolated enum WeekViewMode: String, CaseIterable {
     case bars, calendar
 }
 
+/// The folds in the right pane. A view preference for the same reason `viewMode` is one: how the
+/// pane is arranged is not part of the time log, and `Store` is the time log.
+///
+/// `sessions` was `notes` before the section was renamed: the raw value is what is persisted, so an
+/// older fold set naming `notes` simply no longer decodes and that section comes back expanded. A
+/// view preference is allowed to be forgotten; the log is not, which is why only `Store` has a
+/// migration story.
+nonisolated enum PaneSection: String, CaseIterable {
+    case tasks, inProgress, done, sessions
+}
+
 /// The single mutable object and the single writer. Views read it and call its methods;
 /// no view touches Storage directly.
 @Observable
@@ -17,7 +28,7 @@ final class AppState {
 
     /// Bumped once a second while a timer runs, purely to drive re-renders.
     var tickNow: Date
-    /// Set whenever a session lands in the notes list — by `stop()` or by `addSession` —
+    /// Set whenever a session lands in the sessions list — by `stop()` or by `addSession` —
     /// so the list can put the cursor in its note.
     var focusSessionID: UUID?
     /// Monday 00:00 of the week both panels are showing.
@@ -28,6 +39,15 @@ final class AppState {
     /// decode failure as corruption.
     var viewMode: WeekViewMode {
         didSet { defaults.set(viewMode.rawValue, forKey: Self.viewModeKey) }
+    }
+    /// Which sections of the right pane the user has folded away. Held as a set of the collapsed
+    /// ones rather than a flag per section so that "add another section" can't forget to default
+    /// one of them, and so the stored value stays a short list of exceptions.
+    var collapsedSections: Set<PaneSection> {
+        didSet {
+            defaults.set(collapsedSections.map(\.rawValue).sorted(),
+                         forKey: Self.collapsedSectionsKey)
+        }
     }
 
     @ObservationIgnored let storage: Storage
@@ -41,6 +61,7 @@ final class AppState {
     @ObservationIgnored private var lastCurrentWeekStart: Date
 
     private static let viewModeKey = "weekViewMode"
+    private static let collapsedSectionsKey = "collapsedPaneSections"
 
     init(storage: Storage = .appSupport(),
          now: @escaping () -> Date = Date.init,
@@ -52,6 +73,12 @@ final class AppState {
         self.defaults = defaults
         self.tickNow = now()
         self.viewMode = WeekViewMode(rawValue: defaults.string(forKey: Self.viewModeKey) ?? "") ?? .bars
+        // DONE starts folded: a list of finished work is mostly a receipt, and it would otherwise
+        // push the tasks still to do — the reason the section exists — off the bottom. An empty
+        // stored array means "everything expanded", which is why this checks for the key being
+        // absent (`stringArray` returns nil) rather than for the set being empty.
+        self.collapsedSections = defaults.stringArray(forKey: Self.collapsedSectionsKey)
+            .map { Set($0.compactMap(PaneSection.init(rawValue:))) } ?? [.done]
         do {
             self.store = try storage.load()
         } catch {
@@ -74,6 +101,25 @@ final class AppState {
         self.displayedWeekStart = currentWeek
         self.lastCurrentWeekStart = currentWeek
         if store.running != nil { startTicking() }
+    }
+
+    // MARK: - Pane sections
+
+    func isCollapsed(_ section: PaneSection) -> Bool { collapsedSections.contains(section) }
+
+    func toggleSection(_ section: PaneSection) {
+        if collapsedSections.contains(section) {
+            collapsedSections.remove(section)
+        } else {
+            collapsedSections.insert(section)
+        }
+    }
+
+    /// For something landing that the user has to be able to see. Without this, a stopped session
+    /// would open its note in a popover attached to a row inside a folded section: no row is
+    /// drawn, so nothing opens, and the dead-end is the one `toggle()` already warns about.
+    func expandSection(_ section: PaneSection) {
+        collapsedSections.remove(section)
     }
 
     // MARK: - Derived
@@ -127,6 +173,7 @@ final class AppState {
             stopTicking()
         }
         store.sessions.removeAll { $0.projectID == id }
+        store.todos.removeAll { $0.projectID == id }   // a task without its project has no project to run against
         store.projects.removeAll { $0.id == id }
         if store.selectedProjectID == id {
             store.selectedProjectID = store.projects.first?.id
@@ -134,12 +181,132 @@ final class AppState {
         save()
     }
 
+    // MARK: - Tasks
+
+    /// The selected project's tasks, in creation order — which is the store's own order, because
+    /// tasks are only ever appended. Nothing is sorted, so no sort key can drift from what was
+    /// typed, and a new task can't jump the queue.
+    var todos: [Todo] {
+        guard let projectID = store.selectedProjectID else { return [] }
+        return store.todos.filter { $0.projectID == projectID }
+    }
+
+    /// Still to do. This is the list the section is for.
+    var openTodos: [Todo] { todos.filter { $0.status == .open } }
+
+    /// Started and set down — the IN PROGRESS group. A paused task is the one the disclosure
+    /// below it is worth expanding: it is work already begun, so its sessions are the point.
+    var inProgressTodos: [Todo] { todos.filter { $0.status == .paused } }
+
+    /// Finished, most recently finished first. Completion order is the only ordering in the app
+    /// that isn't creation order, because it is the only one that answers a question (what did I
+    /// just get done). `createdAt` is the fallback for a task finished before it had a stamp.
+    var doneTodos: [Todo] {
+        todos.filter { $0.status == .done }
+            .sorted { ($0.completedAt ?? $0.createdAt) > ($1.completedAt ?? $1.createdAt) }
+    }
+
+    /// The task the running session was started from, if it was — what the chip under the clock
+    /// and the highlighted row are drawn from. Looked up across all projects rather than the
+    /// selection: it describes the timer, not the pane.
+    var runningTodo: Todo? {
+        guard let id = store.running?.todoID else { return nil }
+        return todo(id)
+    }
+
+    func todo(_ id: UUID) -> Todo? {
+        store.todos.first { $0.id == id }
+    }
+
+    func todoCount(for projectID: UUID) -> Int {
+        store.todos.count { $0.projectID == projectID }
+    }
+
+    /// Any project's tasks, in creation order — for the session editor, which names the tasks of the
+    /// session's own project rather than the one the pane happens to be showing. Every status is
+    /// listed, because a session can belong to work that has since been finished.
+    func todos(for projectID: UUID) -> [Todo] {
+        store.todos.filter { $0.projectID == projectID }
+    }
+
+    /// Every session ever run against this task, newest first. Derived by scan like every other
+    /// figure here — and deliberately not week-scoped, because a task outlives a week: "what did
+    /// this thing cost me" is the question the disclosure is asked.
+    func sessions(forTodo id: UUID) -> [Session] {
+        store.sessions.filter { $0.todoID == id }.sorted { $0.start > $1.start }
+    }
+
+    func total(forTodo id: UUID) -> TimeInterval {
+        store.sessions.reduce(0) { total, session in
+            session.todoID == id ? total + session.duration : total
+        }
+    }
+
+    /// New tasks land in the selected project. An empty title is refused rather than stored as a
+    /// nameless row — `nil` tells the caller it was refused, which is what the dialog's Create
+    /// button checks before dismissing.
+    @discardableResult
+    func addTodo(title: String) -> Todo? {
+        guard let projectID = store.selectedProjectID else { return nil }
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        let todo = Todo(projectID: projectID, title: trimmed, createdAt: now())
+        store.todos.append(todo)
+        save()
+        return todo
+    }
+
+    func renameTodo(_ id: UUID, title: String) {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let index = store.todos.firstIndex(where: { $0.id == id }) else { return }
+        store.todos[index].title = trimmed
+        save()
+    }
+
+    /// Completing stamps the moment, because that is what orders the DONE group; reopening clears
+    /// it, so a reopened task never claims to have been finished at a time it wasn't.
+    func setTodoStatus(_ id: UUID, _ status: Todo.Status) {
+        guard let index = store.todos.firstIndex(where: { $0.id == id }) else { return }
+        store.todos[index].status = status
+        store.todos[index].completedAt = (status == .done) ? now() : nil
+        save()
+    }
+
+    /// Deleting a task keeps its sessions — the time really was spent, and erasing it would
+    /// falsify the week — and leaves a timer it started running, because deleting the task says
+    /// nothing about the clock. Only the dangling link goes, so nothing draws a task that is gone.
+    func deleteTodo(_ id: UUID) {
+        if store.running?.todoID == id { store.running?.todoID = nil }
+        store.todos.removeAll { $0.id == id }
+        save()
+    }
+
     // MARK: - Timer
 
     func start(projectID: UUID) {
+        start(projectID: projectID, todoID: nil)
+    }
+
+    /// Starts a session on a task. The project follows the task, and the running timer remembers
+    /// where it came from so `stop()` can describe the session with the task's title.
+    func start(todoID: UUID) {
+        guard let todo = todo(todoID) else { return }
+        // Starting something already finished reopens it: otherwise time would accrue against a
+        // task that claims to be done, and the DONE group would quietly be a lie. A paused task is
+        // left alone — it is in progress, which is exactly what starting it again means.
+        // Mutated here without a save because the `start` below writes the whole store anyway.
+        if let index = store.todos.firstIndex(where: { $0.id == todoID }),
+           store.todos[index].status == .done {
+            store.todos[index].status = .open
+            store.todos[index].completedAt = nil
+        }
+        start(projectID: todo.projectID, todoID: todo.id)
+    }
+
+    private func start(projectID: UUID, todoID: UUID?) {
         if store.running != nil { stop() }
         store.selectedProjectID = projectID   // both panels must describe the same project
-        store.running = Running(projectID: projectID, start: now())
+        store.running = Running(projectID: projectID, start: now(), todoID: todoID)
         tickNow = now()
         startTicking()
         save()
@@ -152,13 +319,38 @@ final class AppState {
         stopTicking()
 
         if ended.timeIntervalSince(running.start) >= 1 {
-            let session = Session(projectID: running.projectID, start: running.start, end: ended)
+            // A session started from a task is described by that task for free: its title becomes
+            // the note. That is only a default — the popover that opens on this session edits the
+            // note like any other, and `focusNoteOnOpen` puts the caret at the end of the title so
+            // typing extends it instead of wiping it. A task deleted mid-session contributes
+            // nothing, which is why the lookup is by id here rather than trusted from the timer.
+            let todo = running.todoID.flatMap { id in store.todos.first { $0.id == id } }
+            let session = Session(projectID: running.projectID, start: running.start, end: ended,
+                                  note: todo?.title ?? "", todoID: todo?.id)
             store.sessions.append(session)
             focusSessionID = session.id
         } else {
             focusSessionID = nil
         }
         save()
+    }
+
+    /// Stops the clock with the session it is about to commit already in view — its project, and the
+    /// week it sits in.
+    ///
+    /// Nothing stops you switching project or paging weeks while a timer runs. Stop while looking
+    /// elsewhere and the new session isn't in `weekSessions`: its row never renders, the annotate
+    /// popover has nothing to attach to, and stop-then-annotate dead-ends. Correcting state first
+    /// means the row exists by the time `focusSessionID` changes and the popover opens.
+    ///
+    /// It lives here rather than in the control that calls it because three controls now stop the
+    /// clock — the main button, a task row's own button, and the menu bar — and all three need that
+    /// same ordering to be right.
+    func stopAndReveal() {
+        guard let running = store.running else { return }
+        if store.selectedProjectID != running.projectID { select(running.projectID) }
+        if !isCurrentWeek { goToCurrentWeek() }
+        stop()
     }
 
     // MARK: - Sessions
@@ -173,11 +365,20 @@ final class AppState {
         return (end.addingTimeInterval(-3600), end)
     }
 
-    /// Logs time after the fact. The displayed week follows the new session, so an entry
-    /// dated outside the week on screen doesn't vanish the moment it's saved.
+    /// Logs time after the fact, optionally against a task. The displayed week follows the new
+    /// session, so an entry dated outside the week on screen doesn't vanish the moment it's saved.
+    ///
+    /// A session logged against a task is described by that task for free, exactly as a stopped one
+    /// is — see `stop()`. That rule lives here rather than in the popover that usually calls it, so
+    /// every caller inherits it and the two paths can't drift on what a blank note means. The task is
+    /// looked up rather than trusted: one deleted while the popover was open leaves no dangling link.
     @discardableResult
-    func addSession(projectID: UUID, start: Date, end: Date, note: String = "") -> Session {
-        let session = Session(projectID: projectID, start: start, end: end, note: note)
+    func addSession(projectID: UUID, start: Date, end: Date, note: String = "",
+                    todoID: UUID? = nil) -> Session {
+        let todo = todoID.flatMap { id in store.todos.first { $0.id == id } }
+        let session = Session(projectID: projectID, start: start, end: end,
+                              note: note.isEmpty ? (todo?.title ?? "") : note,
+                              todoID: todo?.id)
         store.sessions.append(session)
         store.selectedProjectID = projectID
         displayedWeekStart = Week.start(of: start, calendar: calendar)

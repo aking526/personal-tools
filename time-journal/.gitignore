@@ -2,3 +2,5 @@ build/
 *.xcodeproj/xcuserdata/
 .DS_Store
 .superpowers/
+docs/superpowers/
+/plans/

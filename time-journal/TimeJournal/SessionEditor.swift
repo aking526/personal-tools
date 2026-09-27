@@ -21,6 +21,11 @@ struct SessionEditor: View {
     /// nil when logging time after the fact — nothing exists yet to update or delete.
     private let session: Session?
     private let projectID: UUID
+    /// The task this session is for, if any. A `@State` rather than a `let` because the picker under
+    /// the note can change it: a session is one stretch of work that may have covered several tasks,
+    /// so tagging it to one is a label on the session rather than something it was born with. nil for
+    /// a plain Log Time and for any session that was never about one task.
+    @State private var todoID: UUID?
     /// When true (notes-list click / post-stop annotate), keep the note field focused and
     /// move the caret to the end so typing doesn't wipe an existing note. When false
     /// (calendar / Edit Times / Log Time), refuse AppKit's automatic first-responder so the
@@ -33,18 +38,26 @@ struct SessionEditor: View {
         self.session = session
         self.projectID = session.projectID
         self.focusNoteOnOpen = focusNoteOnOpen
+        _todoID = State(initialValue: session.todoID)
         _start = State(initialValue: session.start)
         _end = State(initialValue: session.end)
         _note = State(initialValue: session.note)
     }
 
-    init(newSessionFor projectID: UUID, start: Date, end: Date, focusNoteOnOpen: Bool = false) {
+    /// `note` is passed in rather than defaulted here because the only caller that has one — a task
+    /// row — is the one holding the task's title. Logging against a task opens with that title
+    /// already in the field (and the caret at its end), so what is saved is what was on screen
+    /// rather than a title that appears only after Add; `addSession` still enforces the same default
+    /// for any caller that types nothing.
+    init(newSessionFor projectID: UUID, todoID: UUID? = nil, start: Date, end: Date,
+         note: String = "", focusNoteOnOpen: Bool = false) {
         self.session = nil
         self.projectID = projectID
         self.focusNoteOnOpen = focusNoteOnOpen
+        _todoID = State(initialValue: todoID)
         _start = State(initialValue: start)
         _end = State(initialValue: end)
-        _note = State(initialValue: "")
+        _note = State(initialValue: note)
     }
 
     private var duration: TimeInterval { max(0, end.timeIntervalSince(start)) }
@@ -57,6 +70,8 @@ struct SessionEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             noteField
+
+            taskRow
 
             Divider()
 
@@ -131,6 +146,32 @@ struct SessionEditor: View {
                     .foregroundStyle(.secondary)
                     .padding(.leading, 8)
             }
+        }
+    }
+
+    /// Which task this session is filed under, if any. Optional and clearable on purpose: a session
+    /// is a stretch of work that can cover more than one task, so the link is a label rather than a
+    /// parent, and a session that was never about one task keeps working exactly as before. Every
+    /// status is listed — a session can belong to a task that has since been finished — and the note
+    /// is left alone when the task changes: editing what the session says is the note field's job.
+    private var taskRow: some View {
+        HStack(spacing: 10) {
+            Text("Task")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .frame(width: labelWidth, alignment: .leading)
+
+            Picker("", selection: $todoID) {
+                Text("No task").tag(UUID?.none)
+                ForEach(app.todos(for: projectID)) { todo in
+                    Text(todo.title).tag(UUID?.some(todo.id))
+                }
+            }
+            .labelsHidden()
+            .frame(maxWidth: 220, alignment: .leading)
+            .accessibilityLabel("Task")
+
+            Spacer(minLength: 0)
         }
     }
 
@@ -214,9 +255,11 @@ struct SessionEditor: View {
                     updated.start = start
                     updated.end = end
                     updated.note = note
+                    updated.todoID = todoID
                     app.updateSession(updated)
                 } else {
-                    app.addSession(projectID: projectID, start: start, end: end, note: note)
+                    app.addSession(projectID: projectID, start: start, end: end, note: note,
+                                   todoID: todoID)
                 }
                 dismiss()
             }

@@ -10,12 +10,24 @@ struct MenuBarPanel: View {
                let project = app.store.projects.first(where: { $0.id == running.projectID }) {
                 Text(project.name)
                     .font(.headline)
+                    .lineLimit(1)
+                // Which task this time belongs to, when it belongs to one. The menu bar's own label is
+                // too narrow for a title, so it goes here, where the running session is described.
+                if let todo = app.runningTodo {
+                    Label(todo.title, systemImage: "checklist")
+                        .font(.caption)
+                        .foregroundStyle(Color.accentColor)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .help(todo.title)
+                }
                 Text(Format.clock(app.elapsed))
                     .font(.system(size: 26, weight: .light))
                     .monospacedDigit()
                     .foregroundStyle(Color.accentColor)
                 Button {
-                    app.stop()
+                    app.stopAndReveal()
                 } label: {
                     Label("Stop", systemImage: "stop.fill").frame(maxWidth: .infinity)
                 }

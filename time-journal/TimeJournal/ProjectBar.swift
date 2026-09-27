@@ -67,8 +67,7 @@ struct ProjectBar: View {
                                  set: { if !$0 { pendingDeletion = nil } }),
             presenting: pendingDeletion
         ) { project in
-            Button("Delete Project and \(app.sessionCount(for: project.id)) Session\(app.sessionCount(for: project.id) == 1 ? "" : "s")",
-                   role: .destructive) {
+            Button(deleteLabel(for: project), role: .destructive) {
                 app.deleteProject(project.id)
             }
             Button("Cancel", role: .cancel) {}
@@ -79,5 +78,16 @@ struct ProjectBar: View {
                 Text("This cannot be undone.")
             }
         }
+    }
+
+    /// Names everything the confirm is about to destroy. The sessions are the irreplaceable part; the
+    /// tasks go too, because a task whose project is gone has nothing left to run against. With no
+    /// tasks the sentence is word-for-word what it was before tasks existed.
+    private func deleteLabel(for project: Project) -> String {
+        let sessions = app.sessionCount(for: project.id)
+        let tasks = app.todoCount(for: project.id)
+        let sessionText = "\(sessions) Session\(sessions == 1 ? "" : "s")"
+        guard tasks > 0 else { return "Delete Project and \(sessionText)" }
+        return "Delete Project, \(sessionText) and \(tasks) Task\(tasks == 1 ? "" : "s")"
     }
 }

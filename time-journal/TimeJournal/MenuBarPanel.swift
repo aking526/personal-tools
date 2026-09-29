@@ -1,10 +1,13 @@
 import SwiftUI
+import Combine
 
 /// Menu bar popover: start, stop, and name a session without opening the window.
 struct MenuBarPanel: View {
     @Environment(AppState.self) private var app
+    @Environment(\.openWindow) private var openWindow
     @State private var stoppedSessionID: UUID?
     @State private var note = ""
+    @State private var today = Date.now
     @FocusState private var isNoteFocused: Bool
 
     var body: some View {
@@ -62,12 +65,60 @@ struct MenuBarPanel: View {
                 }
             }
 
+            if let project = app.selectedProject {
+                Divider()
+                projectTotals(for: project)
+            }
+
             Divider()
+            Button {
+                openWindow(id: "main", value: "main")
+                NSApplication.shared.activate(ignoringOtherApps: true)
+            } label: {
+                Label("Open Window", systemImage: "macwindow")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.accessoryBar)
+
             Button("Quit Time Journal") { NSApplication.shared.terminate(nil) }
                 .buttonStyle(.accessoryBar)
         }
         .padding(14)
         .frame(width: 220)
+        .onAppear { today = app.currentDate }
+        .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+            today = app.currentDate
+        }
+    }
+
+    private func projectTotals(for project: Project) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("LOGGED TIME · \(project.name)")
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.tail)
+
+            HStack(alignment: .top, spacing: 12) {
+                total("TODAY", seconds: app.dayTotal(for: today))
+                Spacer(minLength: 0)
+                total("THIS WEEK", seconds: app.currentWeekTotal(for: today))
+            }
+        }
+    }
+
+    private func total(_ label: String, seconds: TimeInterval) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .tracking(0.6)
+            Text(Format.total(seconds))
+                .font(.system(size: 18, weight: .medium))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
     }
 
     private func stoppedSessionEditor(for session: Session) -> some View {

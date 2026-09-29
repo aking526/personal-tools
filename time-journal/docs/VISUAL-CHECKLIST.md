@@ -135,11 +135,17 @@ These three are the ones most likely to be wrong, and the most consequential if 
 
 ## Menu bar
 
-- [ ] A `timer` icon appears while idle; the main window still opens on launch (the app did
-      not become menu-bar-only).
+- [ ] A `timer` icon appears while idle, with no main window on launch. **Open Window** in the
+      menu bar popover opens and focuses the full window.
+- [ ] Clicking **Open Window** again brings that window forward instead of opening a duplicate;
+      closing the window leaves the menu bar timer available, and the button reopens it.
 - [ ] Clicking it lists your projects; clicking one starts its timer **and** the main window's
       switcher follows to that project.
 - [ ] While running, the popover shows project name, elapsed time, and a red Stop.
+- [ ] The popover shows **Today** and **This Week** logged time for the selected project while
+      idle, running, and naming a stopped session. The figures update after a stop.
+- [ ] Paging the main window to an earlier week leaves the menu bar's **This Week** on the
+      current week; switching projects changes both menu bar totals.
 - [ ] Stopping from the menu bar adds the session to the main window's notes list.
 - [ ] After stopping from the menu bar, the popover offers a focused "What did you do?" field;
       typing a note and pressing Return or Done saves it to the session in the main window.

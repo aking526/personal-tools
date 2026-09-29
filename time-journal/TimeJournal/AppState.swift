@@ -450,6 +450,16 @@ final class AppState {
         dayTotals.reduce(0) { $0 + $1.seconds }
     }
 
+    /// The selected project's current week, regardless of which week the main window is showing.
+    /// Like the window's totals, this counts completed sessions; the running timer has its own clock.
+    func currentWeekTotal(for date: Date) -> TimeInterval {
+        guard let projectID = store.selectedProjectID else { return 0 }
+        return Stats.weekTotal(sessions: store.sessions,
+                               projectID: projectID,
+                               weekStart: Week.start(of: date, calendar: calendar),
+                               calendar: calendar)
+    }
+
     /// One day's total for the selected project, independent of the week on screen — paging back
     /// through history doesn't change what today came to. Stored sessions only, like `weekTotal`:
     /// a timer still running is the stopwatch's business, not the day's tally.

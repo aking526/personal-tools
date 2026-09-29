@@ -192,9 +192,33 @@ struct AppStateWeekNavigationTests {
         #expect(state.dayTotal(for: state.currentDate) == 2 * 3600)
     }
 
+    @Test func menuBarTotalsUseTheSelectedProjectAndCurrentWeek() {
+        let today = at(2026, 2, 4, 15, 0)
+        let state = makeState(now: { today })
+        let thesis = state.addProject(name: "Thesis")
+        let client = state.addProject(name: "Client")
+
+        state.addSession(projectID: thesis.id, start: at(2026, 2, 3, 9), end: at(2026, 2, 3, 10))
+        state.addSession(projectID: thesis.id, start: at(2026, 2, 4, 9), end: at(2026, 2, 4, 11))
+        state.addSession(projectID: thesis.id, start: at(2026, 1, 27, 9), end: at(2026, 1, 27, 13))
+        state.addSession(projectID: client.id, start: at(2026, 2, 4, 9), end: at(2026, 2, 4, 14))
+
+        state.goToWeek(offset: -1)
+        state.select(thesis.id)
+        #expect(state.dayTotal(for: today) == 2 * 3600)
+        #expect(state.currentWeekTotal(for: today) == 3 * 3600)
+        #expect(state.weekTotal == 4 * 3600) // the window is showing the earlier week
+
+        state.select(client.id)
+        #expect(state.dayTotal(for: today) == 5 * 3600)
+        #expect(state.currentWeekTotal(for: today) == 5 * 3600)
+        #expect(state.currentWeekTotal(for: at(2026, 2, 9, 12)) == 0)
+    }
+
     @Test func theDayTotalIsZeroWithNoProjectSelected() {
         let state = makeState(now: { at(2026, 2, 4, 15, 0) })
         #expect(state.dayTotal(for: state.currentDate) == 0)
+        #expect(state.currentWeekTotal(for: state.currentDate) == 0)
     }
 
     @Test func weekSessionsAreNewestFirst() {

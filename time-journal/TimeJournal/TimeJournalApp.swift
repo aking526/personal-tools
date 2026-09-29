@@ -5,12 +5,16 @@ struct TimeJournalApp: App {
     @State private var app = AppState()
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("Time Journal", id: "main", for: String.self) { _ in
             ContentView()
                 .environment(app)
+        } defaultValue: {
+            "main"
         }
         .defaultSize(width: 880, height: 540)
         .windowResizability(.contentMinSize)
+        .restorationBehavior(.disabled)
+        .defaultLaunchBehavior(.suppressed)
 
         MenuBarExtra {
             MenuBarPanel()

@@ -45,6 +45,22 @@ struct AppStateTimerTests {
         #expect(state.focusSessionID == session.id)
     }
 
+    @Test func menuBarStopCanNameItsSessionWithoutOpeningTheWindowEditor() throws {
+        var clock = Date(timeIntervalSince1970: 1_000_000)
+        let state = makeState(now: { clock })
+        let project = state.addProject(name: "Thesis")
+
+        state.start(projectID: project.id)
+        clock = Date(timeIntervalSince1970: 1_003_600)
+        var session = try #require(state.stopAndReveal(focusNote: false))
+
+        #expect(state.focusSessionID == nil)
+        #expect(state.weekSessions.map(\.id) == [session.id])
+        session.note = "Rewrote chapter 3"
+        state.updateSession(session)
+        #expect(try state.storage.load().sessions.first?.note == "Rewrote chapter 3")
+    }
+
     @Test func startingAnotherProjectStopsTheCurrentOne() {
         var clock = Date(timeIntervalSince1970: 1_000_000)
         let state = makeState(now: { clock })

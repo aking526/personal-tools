@@ -312,12 +312,14 @@ final class AppState {
         save()
     }
 
-    func stop() {
-        guard let running = store.running else { return }
+    @discardableResult
+    func stop(focusNote: Bool = true) -> Session? {
+        guard let running = store.running else { return nil }
         let ended = now()
         store.running = nil
         stopTicking()
 
+        var stoppedSession: Session?
         if ended.timeIntervalSince(running.start) >= 1 {
             // A session started from a task is described by that task for free: its title becomes
             // the note. That is only a default — the popover that opens on this session edits the
@@ -328,11 +330,13 @@ final class AppState {
             let session = Session(projectID: running.projectID, start: running.start, end: ended,
                                   note: todo?.title ?? "", todoID: todo?.id)
             store.sessions.append(session)
-            focusSessionID = session.id
+            stoppedSession = session
+            focusSessionID = focusNote ? session.id : nil
         } else {
             focusSessionID = nil
         }
         save()
+        return stoppedSession
     }
 
     /// Stops the clock with the session it is about to commit already in view — its project, and the
@@ -346,11 +350,12 @@ final class AppState {
     /// It lives here rather than in the control that calls it because three controls now stop the
     /// clock — the main button, a task row's own button, and the menu bar — and all three need that
     /// same ordering to be right.
-    func stopAndReveal() {
-        guard let running = store.running else { return }
+    @discardableResult
+    func stopAndReveal(focusNote: Bool = true) -> Session? {
+        guard let running = store.running else { return nil }
         if store.selectedProjectID != running.projectID { select(running.projectID) }
         if !isCurrentWeek { goToCurrentWeek() }
-        stop()
+        return stop(focusNote: focusNote)
     }
 
     // MARK: - Sessions

@@ -141,6 +141,10 @@ These three are the ones most likely to be wrong, and the most consequential if 
       switcher follows to that project.
 - [ ] While running, the popover shows project name, elapsed time, and a red Stop.
 - [ ] Stopping from the menu bar adds the session to the main window's notes list.
+- [ ] After stopping from the menu bar, the popover offers a focused "What did you do?" field;
+      typing a note and pressing Return or Done saves it to the session in the main window.
+- [ ] Typing a note and closing the menu bar popover also saves it. Stopping a task timer keeps
+      the task title as the editable starting note.
 - [ ] Starting from the menu bar while another project's timer runs stops and records the first.
 - [ ] **Quit Time Journal** quits the app.
 - [ ] Menu bar width jitter as the clock rolls over is acceptable to you.

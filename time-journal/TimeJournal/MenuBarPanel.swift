@@ -1,8 +1,11 @@
 import SwiftUI
 
-/// Menu bar popover: stop what's running, or start something without opening the window.
+/// Menu bar popover: start, stop, and name a session without opening the window.
 struct MenuBarPanel: View {
     @Environment(AppState.self) private var app
+    @State private var stoppedSessionID: UUID?
+    @State private var note = ""
+    @FocusState private var isNoteFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -27,12 +30,21 @@ struct MenuBarPanel: View {
                     .monospacedDigit()
                     .foregroundStyle(Color.accentColor)
                 Button {
-                    app.stopAndReveal()
+                    // Keep the new session's note editor in this popover. The main window still
+                    // follows the session's project and week, but does not open a second editor.
+                    if let session = app.stopAndReveal(focusNote: false) {
+                        note = session.note
+                        stoppedSessionID = session.id
+                    }
                 } label: {
                     Label("Stop", systemImage: "stop.fill").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
+            } else if let session = stoppedSessionID.flatMap({ id in
+                app.store.sessions.first { $0.id == id }
+            }) {
+                stoppedSessionEditor(for: session)
             } else if app.store.projects.isEmpty {
                 Text("No projects yet")
                     .foregroundStyle(.secondary)
@@ -56,5 +68,43 @@ struct MenuBarPanel: View {
         }
         .padding(14)
         .frame(width: 220)
+    }
+
+    private func stoppedSessionEditor(for session: Session) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Session stopped")
+                .font(.headline)
+            if let project = app.project(session.projectID) {
+                Text(project.name)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            TextField("What did you do?", text: $note)
+                .textFieldStyle(.roundedBorder)
+                .focused($isNoteFocused)
+                .onSubmit(saveNote)
+            Button("Done") { saveNote() }
+                .buttonStyle(.borderedProminent)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .onAppear {
+            DispatchQueue.main.async {
+                if stoppedSessionID == session.id { isNoteFocused = true }
+            }
+        }
+        // Closing the menu bar popover should keep text already typed into the field.
+        .onDisappear { saveNote() }
+    }
+
+    private func saveNote() {
+        guard let id = stoppedSessionID,
+              var session = app.store.sessions.first(where: { $0.id == id }) else { return }
+        if session.note != note {
+            session.note = note
+            app.updateSession(session)
+        }
+        isNoteFocused = false
+        stoppedSessionID = nil
     }
 }

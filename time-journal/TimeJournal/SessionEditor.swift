@@ -31,13 +31,21 @@ struct SessionEditor: View {
     /// (calendar / Edit Times / Log Time), refuse AppKit's automatic first-responder so the
     /// note isn't selected for someone who opened the popover to adjust times.
     private let focusNoteOnOpen: Bool
+    /// The menu bar embeds this editor and returns to its project list after Save/Delete.
+    /// Window callers keep the usual popover dismissal and discard-on-close behavior.
+    private var onFinish: (() -> Void)? = nil
+    private var savesNoteOnDisappear = false
+    @State private var didFinish = false
 
     private enum Field { case start, end }
 
-    init(session: Session, focusNoteOnOpen: Bool = false) {
+    init(session: Session, focusNoteOnOpen: Bool = false,
+         savesNoteOnDisappear: Bool = false, onFinish: (() -> Void)? = nil) {
         self.session = session
         self.projectID = session.projectID
         self.focusNoteOnOpen = focusNoteOnOpen
+        self.savesNoteOnDisappear = savesNoteOnDisappear
+        self.onFinish = onFinish
         _todoID = State(initialValue: session.todoID)
         _start = State(initialValue: session.start)
         _end = State(initialValue: session.end)
@@ -93,6 +101,20 @@ struct SessionEditor: View {
         }
         .padding(16)
         .frame(width: 380)
+        .onAppear {
+            if focusNoteOnOpen {
+                DispatchQueue.main.async { isNoteFocused = true }
+            }
+        }
+        .onDisappear {
+            // Preserve the menu bar's quick-note behavior when clicking away. Time/task
+            // changes require Save; never overwrite a saved edit or restore a deleted entry.
+            guard savesNoteOnDisappear, !didFinish, let session,
+                  var current = app.store.sessions.first(where: { $0.id == session.id }),
+                  current.note != note else { return }
+            current.note = note
+            app.updateSession(current)
+        }
         // AppKit hands first responder to the first text field in a popover, and a text field
         // selects everything it holds when it gets it — so this opened with the whole note
         // highlighted, one keystroke from being wiped by someone who came to read the times.
@@ -244,7 +266,7 @@ struct SessionEditor: View {
             if let session {
                 Button("Delete", role: .destructive) {
                     app.deleteSession(session.id)
-                    dismiss()
+                    finish()
                 }
             } else {
                 Button("Cancel", role: .cancel) { dismiss() }
@@ -261,10 +283,19 @@ struct SessionEditor: View {
                     app.addSession(projectID: projectID, start: start, end: end, note: note,
                                    todoID: todoID)
                 }
-                dismiss()
+                finish()
             }
             .keyboardShortcut(.defaultAction)
             .disabled(!isValid)
+        }
+    }
+
+    private func finish() {
+        didFinish = true
+        if let onFinish {
+            onFinish()
+        } else {
+            dismiss()
         }
     }
 }

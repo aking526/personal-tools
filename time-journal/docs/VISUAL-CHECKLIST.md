@@ -147,10 +147,17 @@ These three are the ones most likely to be wrong, and the most consequential if 
 - [ ] Paging the main window to an earlier week leaves the menu bar's **This Week** on the
       current week; switching projects changes both menu bar totals.
 - [ ] Stopping from the menu bar adds the session to the main window's notes list.
-- [ ] After stopping from the menu bar, the popover offers a focused "What did you do?" field;
-      typing a note and pressing Return or Done saves it to the session in the main window.
+- [ ] After stopping from the menu bar, the popover expands to the full session editor with a
+      focused "What did you do?" field, task picker, start/end dates and times, and duration.
+      Pressing Return or Save saves the edits and returns to the project buttons.
+- [ ] Correct an end time after leaving the timer running, including an overnight session.
+      Duration updates immediately; Save updates the logged totals and persists after relaunch.
+- [ ] An end at or before the start disables Save and shows the warning in the menu bar too.
+- [ ] Delete an accidental session directly after stopping. The editor closes, totals shrink,
+      and the entry stays deleted after closing/reopening the popover and relaunching the app.
+- [ ] Open either day picker in the menu bar editor: the month grid fits without clipping.
 - [ ] Typing a note and closing the menu bar popover also saves it. Stopping a task timer keeps
-      the task title as the editable starting note.
+      the task title as the editable starting note. Time/task edits require Save.
 - [ ] Starting from the menu bar while another project's timer runs stops and records the first.
 - [ ] **Quit Time Journal** quits the app.
 - [ ] Menu bar width jitter as the clock rolls over is acceptable to you.
